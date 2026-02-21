@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Bithealth Center Apple Icon</title>
+  <desc id="desc">Rounded square with a simple operation grid mark.</desc>
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="#f1ece2" />
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="none" stroke="#d7d1c8" stroke-width="16" />
+  <g fill="#4a443b">
+    <rect x="154" y="154" width="64" height="64" rx="16" />
+    <rect x="224" y="154" width="64" height="64" rx="16" />
+    <rect x="294" y="154" width="64" height="64" rx="16" />
+    <rect x="154" y="224" width="64" height="64" rx="16" />
+    <rect x="224" y="224" width="64" height="64" rx="16" />
+    <rect x="294" y="224" width="64" height="64" rx="16" />
+    <rect x="154" y="294" width="64" height="64" rx="16" />
+    <rect x="224" y="294" width="64" height="64" rx="16" />
+    <rect x="294" y="294" width="64" height="64" rx="16" />
+  </g>
+</svg>
