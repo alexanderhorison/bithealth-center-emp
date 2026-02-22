@@ -7,6 +7,7 @@ import {
   isAllowedEmployeeEmail,
   mapSupabaseUser
 } from '@/lib/auth/shared';
+import { syncEmployee } from '@/lib/employee/sync';
 
 const payloadSchema = z.object({
   accessToken: z.string().min(1),
@@ -33,7 +34,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'User profile is incomplete' }, { status: 401 });
   }
 
-  if (!isAllowedEmployeeEmail(user.email)) {
+  const employee = await syncEmployee({
+    userId: user.id,
+    primaryEmail: user.email,
+    fullName: user.fullName,
+    avatarUrl: user.avatarUrl
+  });
+
+  if (!isAllowedEmployeeEmail(user.email) && employee.role?.code !== 'ADMIN') {
     return NextResponse.json({ message: 'Email domain is not allowed' }, { status: 403 });
   }
 

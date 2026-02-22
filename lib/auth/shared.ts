@@ -15,6 +15,11 @@ export type AuthenticatedEmployeeUser = {
   avatarUrl: string | null;
 };
 
+type EmployeeRole = string;
+type RoleRow = {
+  code: string;
+};
+
 function getStringMetadataValue(metadata: Record<string, unknown> | null | undefined, key: string): string | null {
   const value = metadata?.[key];
   return typeof value === 'string' && value.length > 0 ? value : null;
@@ -58,6 +63,63 @@ export function createSupabaseAuthClient() {
   });
 }
 
+function createSupabaseServiceClient() {
+  const env = getServerEnv();
+
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  });
+}
+
+async function getEmployeeRoleByUser(userId: string, email: string): Promise<EmployeeRole | null> {
+  const supabase = createSupabaseServiceClient();
+
+  const byUserIdResult = await supabase
+    .schema('presence')
+    .from('employees')
+    .select('roles!employees_role_id_fkey(code)')
+    .eq('clerk_user_id', userId)
+    .maybeSingle<{ roles: RoleRow | RoleRow[] | null }>();
+
+  if (byUserIdResult.error) {
+    return null;
+  }
+
+  const byUserIdRole = Array.isArray(byUserIdResult.data?.roles)
+    ? byUserIdResult.data?.roles[0]
+    : byUserIdResult.data?.roles;
+
+  if (byUserIdRole?.code) {
+    return byUserIdRole.code;
+  }
+
+  const byEmailResult = await supabase
+    .schema('presence')
+    .from('employees')
+    .select('roles!employees_role_id_fkey(code)')
+    .eq('email', email)
+    .maybeSingle<{ roles: RoleRow | RoleRow[] | null }>();
+
+  if (byEmailResult.error) {
+    return null;
+  }
+
+  const byEmailRole = Array.isArray(byEmailResult.data?.roles) ? byEmailResult.data?.roles[0] : byEmailResult.data?.roles;
+  return byEmailRole?.code ?? null;
+}
+
+async function isAllowedEmployeeUser(user: AuthenticatedEmployeeUser): Promise<boolean> {
+  if (isAllowedEmployeeEmail(user.email)) {
+    return true;
+  }
+
+  const role = await getEmployeeRoleByUser(user.id, user.email);
+  return role === 'ADMIN';
+}
+
 export async function getEmployeeUserFromAccessToken(token: string): Promise<AuthenticatedEmployeeUser | null> {
   const supabase = createSupabaseAuthClient();
   const { data, error } = await supabase.auth.getUser(token);
@@ -68,7 +130,7 @@ export async function getEmployeeUserFromAccessToken(token: string): Promise<Aut
 
   const mapped = mapSupabaseUser(data.user);
 
-  if (!mapped || !isAllowedEmployeeEmail(mapped.email)) {
+  if (!mapped || !(await isAllowedEmployeeUser(mapped))) {
     return null;
   }
 
@@ -91,7 +153,7 @@ export async function refreshEmployeeSession(refreshToken: string): Promise<{
 
   const mapped = mapSupabaseUser(data.user);
 
-  if (!mapped || !isAllowedEmployeeEmail(mapped.email)) {
+  if (!mapped || !(await isAllowedEmployeeUser(mapped))) {
     return null;
   }
 
