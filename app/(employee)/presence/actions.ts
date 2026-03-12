@@ -6,6 +6,9 @@ import { getCurrentEmployeeUser } from '@/lib/auth/server';
 import { syncEmployee } from '@/lib/employee/sync';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { submitPresenceSchema, type SubmitPresenceInput } from '@/lib/validations/presence';
+import { HISTORY_PAGE_SIZE, type HistoryPresenceRow } from './_shared';
+
+export type { HistoryPresenceRow };
 
 type EmployeeRow = {
   id: string;
@@ -20,16 +23,9 @@ type UploadSelfieResult =
   | { success: true; message: string; url: string }
   | { success: false; message: string };
 
-export type HistoryPresenceRow = {
-  status: 'PRESENT' | 'WFH' | 'NOT_PRESENT' | 'GO_TO_CLIENT';
-  presence_date: string;
-  updated_at: string;
-};
-
 const selfieBucketName = 'presence-selfies';
 const maxSelfieSizeInBytes = 5 * 1024 * 1024;
 const allowedSelfieMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
-export const HISTORY_PAGE_SIZE = 7;
 
 function getSelfieExtension(file: File): string {
   if (file.type === 'image/png') return 'png';

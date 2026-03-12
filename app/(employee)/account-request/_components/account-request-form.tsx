@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { CheckCircle2, Figma, Github, Info } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Figma, Github, Info } from 'lucide-react';
 
 import { createAccessRequestAction } from '@/app/(employee)/account-request/actions';
 import { Button } from '@/components/ui/button';
@@ -144,17 +144,20 @@ export function AccountRequestForm({ defaults }: AccountRequestFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="requestType">Request Type</Label>
-          <select
-            id="requestType"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            {...form.register('requestType')}
-          >
-            {typeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="requestType"
+              className="w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm"
+              {...form.register('requestType')}
+            >
+              {typeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="displayName">Name</Label>
@@ -213,11 +216,10 @@ export function AccountRequestForm({ defaults }: AccountRequestFormProps) {
         <div
           role="status"
           aria-live="polite"
-          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
-            mutation.data.success
-              ? 'border-green-300 bg-green-50 text-green-900'
-              : 'border-red-300 bg-red-50 text-red-900'
-          }`}
+          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${mutation.data.success
+            ? 'border-green-300 bg-green-50 text-green-900'
+            : 'border-red-300 bg-red-50 text-red-900'
+            }`}
         >
           {mutation.data.success ? <CheckCircle2 className="h-4 w-4" /> : <Info className="h-4 w-4" />}
           {mutation.data.message}

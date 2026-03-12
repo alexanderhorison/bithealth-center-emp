@@ -76,11 +76,11 @@ export default async function EmployeePresencePage() {
   const historyEntries = (historyResult.data ?? []) as HistoryPresenceRow[];
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Hello, {employee.full_name ?? user.email}</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-lg font-bold sm:text-2xl">Hello, {employee.full_name ?? user.email}</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Manage your daily operations from Bithealth Center.
           </p>
         </div>

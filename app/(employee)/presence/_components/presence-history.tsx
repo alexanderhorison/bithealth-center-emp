@@ -4,11 +4,8 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { CalendarDays, ChevronDown, UserRound } from 'lucide-react';
 
-import {
-  fetchPresenceHistoryAction,
-  HISTORY_PAGE_SIZE,
-  type HistoryPresenceRow
-} from '@/app/(employee)/presence/actions';
+import { fetchPresenceHistoryAction } from '@/app/(employee)/presence/actions';
+import { HISTORY_PAGE_SIZE, type HistoryPresenceRow } from '@/app/(employee)/presence/_shared';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -106,8 +103,7 @@ export function PresenceHistory({ initialEntries }: PresenceHistoryProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    className="w-full"
+                    className="h-8 w-full text-xs"
                     onClick={() => loadMoreMutation.mutate()}
                     disabled={loadMoreMutation.isPending}
                     aria-label="Load more presence history"

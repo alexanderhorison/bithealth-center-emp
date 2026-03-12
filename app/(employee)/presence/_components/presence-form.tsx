@@ -132,7 +132,7 @@ export function PresenceForm({
         await mutation.mutateAsync(payload);
       })}
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {statusOptions.map((option) => {
           const Icon = option.icon;
           const isActive = status === option.value;
@@ -141,19 +141,18 @@ export function PresenceForm({
             <button
               key={option.value}
               type="button"
-              className={`rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                isActive ? 'border-primary bg-primary/10' : 'border-border bg-background'
-              }`}
+              className={`rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4 ${isActive ? 'border-primary bg-primary/10' : 'border-border bg-background'
+                }`}
               onClick={() => {
                 form.setValue('status', option.value, { shouldValidate: true });
               }}
               aria-label={`Set status as ${option.label}`}
             >
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                <Icon className="h-4 w-4" aria-hidden="true" />
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold sm:mb-2 sm:gap-2 sm:text-sm">
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                 {option.label}
               </div>
-              <p className="text-sm text-muted-foreground">{option.description}</p>
+              <p className="text-xs text-muted-foreground sm:text-sm">{option.description}</p>
             </button>
           );
         })}
@@ -232,11 +231,10 @@ export function PresenceForm({
         <div
           role="status"
           aria-live="polite"
-          className={`rounded-lg border px-4 py-3 text-sm ${
-            mutation.data.success
+          className={`rounded-lg border px-4 py-3 text-sm ${mutation.data.success
               ? 'border-green-300 bg-green-50 text-green-900'
               : 'border-red-300 bg-red-50 text-red-900'
-          }`}
+            }`}
         >
           <div className="flex items-start gap-2">
             {mutation.data.success ? (
