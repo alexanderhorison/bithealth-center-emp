@@ -59,7 +59,7 @@ async function updateEmployeeById(id: string, input: SyncEmployeeInput): Promise
     .schema('presence')
     .from('employees')
     .update({
-      clerk_user_id: input.userId,
+      auth_user_id: input.userId,
       email: input.primaryEmail,
       full_name: input.fullName,
       avatar_url: input.avatarUrl
@@ -82,7 +82,7 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
     .schema('presence')
     .from('employees')
     .select('id')
-    .eq('clerk_user_id', input.userId)
+    .eq('auth_user_id', input.userId)
     .maybeSingle<{ id: string }>();
 
   if (byAuthUserResult.error) {
@@ -112,7 +112,7 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
     .schema('presence')
     .from('employees')
     .insert({
-      clerk_user_id: input.userId,
+      auth_user_id: input.userId,
       email: input.primaryEmail,
       full_name: input.fullName,
       avatar_url: input.avatarUrl

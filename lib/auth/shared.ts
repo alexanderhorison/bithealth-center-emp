@@ -15,7 +15,11 @@ export type AuthenticatedEmployeeUser = {
   avatarUrl: string | null;
 };
 
-type EmployeeRole = string;
+type EmployeeStatus = {
+  isActive: boolean;
+  roleCode: string | null;
+};
+
 type RoleRow = {
   code: string;
 };
@@ -74,50 +78,65 @@ function createSupabaseServiceClient() {
   });
 }
 
-async function getEmployeeRoleByUser(userId: string, email: string): Promise<EmployeeRole | null> {
+function normalizeRoleCode(roles: RoleRow | RoleRow[] | null | undefined): string | null {
+  const row = Array.isArray(roles) ? roles[0] : roles;
+  return row?.code ?? null;
+}
+
+async function getEmployeeStatus(userId: string, email: string): Promise<EmployeeStatus | null> {
   const supabase = createSupabaseServiceClient();
 
   const byUserIdResult = await supabase
     .schema('presence')
     .from('employees')
-    .select('roles!employees_role_id_fkey(code)')
-    .eq('clerk_user_id', userId)
-    .maybeSingle<{ roles: RoleRow | RoleRow[] | null }>();
+    .select('is_active, roles!employees_role_id_fkey(code)')
+    .eq('auth_user_id', userId)
+    .maybeSingle<{ is_active: boolean; roles: RoleRow | RoleRow[] | null }>();
 
-  if (byUserIdResult.error) {
-    return null;
-  }
-
-  const byUserIdRole = Array.isArray(byUserIdResult.data?.roles)
-    ? byUserIdResult.data?.roles[0]
-    : byUserIdResult.data?.roles;
-
-  if (byUserIdRole?.code) {
-    return byUserIdRole.code;
+  if (!byUserIdResult.error && byUserIdResult.data) {
+    return {
+      isActive: byUserIdResult.data.is_active,
+      roleCode: normalizeRoleCode(byUserIdResult.data.roles)
+    };
   }
 
   const byEmailResult = await supabase
     .schema('presence')
     .from('employees')
-    .select('roles!employees_role_id_fkey(code)')
+    .select('is_active, roles!employees_role_id_fkey(code)')
     .eq('email', email)
-    .maybeSingle<{ roles: RoleRow | RoleRow[] | null }>();
+    .maybeSingle<{ is_active: boolean; roles: RoleRow | RoleRow[] | null }>();
 
-  if (byEmailResult.error) {
-    return null;
+  if (!byEmailResult.error && byEmailResult.data) {
+    return {
+      isActive: byEmailResult.data.is_active,
+      roleCode: normalizeRoleCode(byEmailResult.data.roles)
+    };
   }
 
-  const byEmailRole = Array.isArray(byEmailResult.data?.roles) ? byEmailResult.data?.roles[0] : byEmailResult.data?.roles;
-  return byEmailRole?.code ?? null;
+  return null;
 }
 
 async function isAllowedEmployeeUser(user: AuthenticatedEmployeeUser): Promise<boolean> {
+  const status = await getEmployeeStatus(user.id, user.email);
+
+  // Not in DB yet — allow through if domain check passes (will sync on first Server Action)
+  if (!status) {
+    return isAllowedEmployeeEmail(user.email);
+  }
+
+  // Inactive employees are always denied, regardless of domain or role
+  if (!status.isActive) {
+    return false;
+  }
+
+  // Active + company email domain = allow
   if (isAllowedEmployeeEmail(user.email)) {
     return true;
   }
 
-  const role = await getEmployeeRoleByUser(user.id, user.email);
-  return role === 'ADMIN';
+  // Active + ADMIN role = allow (non-domain override)
+  return status.roleCode === 'ADMIN';
 }
 
 export async function getEmployeeUserFromAccessToken(token: string): Promise<AuthenticatedEmployeeUser | null> {

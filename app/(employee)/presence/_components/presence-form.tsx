@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, type ChangeEvent } from 'react';
+import { useMemo, type ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { usePresenceFormStore } from '@/store/use-presence-form';
 import { submitPresenceSchema, type SubmitPresenceInput } from '@/lib/validations/presence';
 
 type PresenceStatus = 'PRESENT' | 'WFH' | 'NOT_PRESENT' | 'GO_TO_CLIENT';
@@ -22,11 +21,17 @@ type PresenceFormProps = {
   initialStatus: PresenceStatus;
   initialSelfieUrl?: string | null;
   initialNote?: string | null;
+  // GAP-PRES-03: signals that the employee has already submitted today
+  hasExistingSubmission?: boolean;
 };
 
-export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: PresenceFormProps) {
+export function PresenceForm({
+  initialStatus,
+  initialSelfieUrl,
+  initialNote,
+  hasExistingSubmission = false
+}: PresenceFormProps) {
   const router = useRouter();
-  const { status, setStatus } = usePresenceFormStore();
 
   const form = useForm<SubmitPresenceInput>({
     resolver: zodResolver(submitPresenceSchema),
@@ -37,9 +42,8 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
     }
   });
 
-  useEffect(() => {
-    setStatus(initialStatus);
-  }, [initialStatus, setStatus]);
+  // GAP-PRES-02: Single source of truth — RHF watch replaces the Zustand store.
+  const status = form.watch('status');
 
   const mutation = useMutation({
     mutationFn: (input: SubmitPresenceInput) => submitPresenceAction(input),
@@ -54,6 +58,11 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.set('file', file);
+      // GAP-PRES-01: Pass the current selfie URL so the server can delete the old file.
+      const currentSelfieUrl = form.getValues('selfieUrl');
+      if (currentSelfieUrl) {
+        formData.set('previousSelfieUrl', currentSelfieUrl);
+      }
       return uploadSelfieAction(formData);
     },
     onSuccess: (result) => {
@@ -65,10 +74,7 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
 
   const selfiePreview = form.watch('selfieUrl');
   const canPreviewSelfie = useMemo(() => {
-    if (!selfiePreview) {
-      return false;
-    }
-
+    if (!selfiePreview) return false;
     try {
       new URL(selfiePreview);
       return true;
@@ -79,11 +85,7 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
 
   const onSelfieChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
+    if (!file) return;
     await uploadMutation.mutateAsync(file);
     event.target.value = '';
   };
@@ -127,7 +129,6 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
           selfieUrl: values.selfieUrl ?? '',
           note: values.note ?? ''
         };
-
         await mutation.mutateAsync(payload);
       })}
     >
@@ -144,7 +145,6 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
                 isActive ? 'border-primary bg-primary/10' : 'border-border bg-background'
               }`}
               onClick={() => {
-                setStatus(option.value);
                 form.setValue('status', option.value, { shouldValidate: true });
               }}
               aria-label={`Set status as ${option.label}`}
@@ -252,13 +252,20 @@ export function PresenceForm({ initialStatus, initialSelfieUrl, initialNote }: P
         </div>
       ) : null}
 
+      {/* GAP-PRES-03: Warn the employee before overwriting an existing submission. */}
+      {hasExistingSubmission && !mutation.data ? (
+        <p className="text-xs text-muted-foreground">
+          You&apos;ve already submitted for today. Saving will update your existing record.
+        </p>
+      ) : null}
+
       <Button
         type="submit"
         disabled={mutation.isPending || uploadMutation.isPending}
         aria-label="Submit daily presence"
         className="w-full"
       >
-        {mutation.isPending ? 'Saving...' : 'Save Presence'}
+        {mutation.isPending ? 'Saving...' : hasExistingSubmission ? 'Update Presence' : 'Save Presence'}
       </Button>
     </form>
   );

@@ -104,10 +104,28 @@ export function RequestHistory({ rows, page, pageSize, totalCount }: RequestHist
             </div>
           ))}
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
-            </p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+              {/* GAP-ACCT-02: Per-page toggle — navigates via URL so the selection is bookmarkable. */}
+              <span className="text-xs text-muted-foreground">·</span>
+              {([10, 20] as const).map((size) => (
+                <Link key={size} href={`/account-request?page=1&pageSize=${size}`}>
+                  <button
+                    type="button"
+                    aria-label={`Show ${size} per page`}
+                    className={cn(
+                      'h-7 rounded border px-2 text-xs transition',
+                      pageSize === size
+                        ? 'border-primary bg-primary/10 font-medium text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-stone-400'
+                    )}
+                  >
+                    {size}
+                  </button>
+                </Link>
+              ))}
+            </div>
             <div className="flex items-center gap-2">
               <Link href={`/account-request?page=${Math.max(1, page - 1)}&pageSize=${pageSize}`}>
                 <Button variant="outline" className="h-8 px-3" disabled={page === 1} aria-label="Previous page">

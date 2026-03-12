@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
@@ -14,7 +14,19 @@ const payloadSchema = z.object({
   refreshToken: z.string().min(1)
 });
 
-export async function POST(request: Request) {
+function isSameOriginRequest(request: NextRequest): boolean {
+  const origin = request.headers.get('origin');
+  if (!origin) return true; // No origin header = server-side call, allow
+  const host = request.headers.get('host') ?? '';
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  return origin === `${protocol}://${host}`;
+}
+
+export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+  }
+
   const payload = payloadSchema.safeParse(await request.json().catch(() => null));
 
   if (!payload.success) {
@@ -40,6 +52,10 @@ export async function POST(request: Request) {
     fullName: user.fullName,
     avatarUrl: user.avatarUrl
   });
+
+  if (!employee.is_active) {
+    return NextResponse.json({ message: 'Account is inactive' }, { status: 403 });
+  }
 
   if (!isAllowedEmployeeEmail(user.email) && employee.role?.code !== 'ADMIN') {
     return NextResponse.json({ message: 'Email domain is not allowed' }, { status: 403 });
