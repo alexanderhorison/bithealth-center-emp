@@ -114,6 +114,13 @@ openspec/               # SDD spec artifacts (see SDD Workflow section)
 - Auth callback handled at `app/auth/callback/`
 - Auth UI components in `components/auth/`
 
+### Supabase / PostgREST Multi-Relation Joins (Important)
+- Database schema menggunakan many-to-many relationship via junction table `employee_roles`.
+- Karena ada lebih dari satu Foreign Key (FK) dari `employee_roles` ke `employees` (`employee_id` dan `assigned_by`), PostgREST akan error ambigu jika melakukan join implisit `employee_roles(roles(...))`.
+- **Selalu gunakan spesifikasi FK eksplisit** saat men-query join ini:
+  `employee_roles!employee_roles_employee_id_fkey(roles(...))`
+- Aturan ini diterapkan di file sync employee (`lib/employee/sync.ts` di `admin-cms` dan `employee-app`) serta page query (`admin-cms/app/(admin)/employees/page.tsx`).
+
 ---
 
 ## Spec-Driven Development (SDD) Workflow
