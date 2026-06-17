@@ -66,7 +66,7 @@ export default async function EmployeeManagementPage({ searchParams }: PageProps
   let employeeQuery = supabase
     .schema('presence')
     .from('employees')
-    .select('id, full_name, email, auth_user_id, is_active, employee_roles(roles(id, code, name, app)), created_at', {
+    .select('id, full_name, email, auth_user_id, is_active, employee_roles!employee_roles_employee_id_fkey(roles(id, code, name, app)), created_at', {
       count: 'exact'
     });
 

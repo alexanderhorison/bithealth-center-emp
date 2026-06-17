@@ -52,7 +52,7 @@ export type SyncedEmployee = {
 };
 
 const employeeSelectColumns =
-  'id, full_name, email, is_active, employee_roles(roles(id, code, name, app, is_system, role_permissions(route)))';
+  'id, full_name, email, is_active, employee_roles!employee_roles_employee_id_fkey(roles(id, code, name, app, is_system, role_permissions(route)))';
 
 function normalizeRoleRow(value: RoleWithPermissionsRow | RoleWithPermissionsRow[] | null): RoleWithPermissionsRow | null {
   if (Array.isArray(value)) return value[0] ?? null;
