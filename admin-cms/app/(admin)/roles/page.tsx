@@ -95,7 +95,7 @@ export default async function RoleManagementPage({ searchParams }: PageProps) {
   if (roleIds.length > 0) {
     const { data: employeeRoleData, error: employeeRoleError } = await supabase
       .schema('presence')
-      .from('employees')
+      .from('employee_roles')
       .select('role_id')
       .in('role_id', roleIds);
 
