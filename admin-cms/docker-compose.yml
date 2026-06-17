@@ -1,0 +1,35 @@
+services:
+  admin-cms:
+    image: ${IMAGE_NAME:-bithealth-admin-cms}:latest
+    container_name: ${CONTAINER_NAME:-bithealth-admin-cms}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3001}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      ADMIN_EMAIL_ALLOWLIST: ${ADMIN_EMAIL_ALLOWLIST}
+    ports:
+      - "${PORT:-3001}:${PORT:-3001}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:${PORT:-3001}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - tunnel
+
+networks:
+  tunnel:
+    external: true
