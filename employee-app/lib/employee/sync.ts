@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 type SyncEmployeeInput = {
@@ -75,7 +77,7 @@ async function updateEmployeeById(id: string, input: SyncEmployeeInput): Promise
   return mapEmployeeRow(data);
 }
 
-export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmployee> {
+export const syncEmployee = cache(async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmployee> {
   const supabase = createSupabaseAdminClient();
 
   const byAuthUserResult = await supabase
@@ -144,4 +146,4 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
   }
 
   throw new Error(insertResult.error.message);
-}
+});
