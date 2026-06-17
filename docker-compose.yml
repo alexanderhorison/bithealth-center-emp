@@ -1,0 +1,46 @@
+services:
+  employee-app:
+    image: bithealth-employee-app:latest
+    container_name: bithealth-employee-app
+    build:
+      context: ./employee-app
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3010:3000"
+    restart: unless-stopped
+    networks:
+      - bithealth
+
+  admin-cms:
+    image: bithealth-admin-cms:latest
+    container_name: bithealth-admin-cms
+    build:
+      context: ./admin-cms
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    ports:
+      - "3011:3001"
+    restart: unless-stopped
+    networks:
+      - bithealth
+
+networks:
+  bithealth:
+    driver: bridge

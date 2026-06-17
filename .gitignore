@@ -1,0 +1,49 @@
+# ── Dependencies ──────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Next.js ───────────────────────────────────────────────
+.next/
+out/
+build/
+
+# ── Environment variables (NEVER commit secrets) ──────────
+.env
+.env.local
+.env.*.local
+# Keep example files so devs know what vars are needed
+!.env.example
+!.env.docker.example
+
+# ── Docker ────────────────────────────────────────────────
+# docker-compose.yml is intentionally committed
+
+# ── Logs ──────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# ── Build artifacts ───────────────────────────────────────
+dist/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# ── Vercel ────────────────────────────────────────────────
+.vercel/
+
+# ── Supabase ──────────────────────────────────────────────
+supabase/.temp/
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
