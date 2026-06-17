@@ -11,16 +11,34 @@ export type EmployeeRole = {
   id: string;
   code: string;
   name: string;
+  app: 'cms' | 'emp';
   is_system: boolean;
+  routes: string[];
 };
 
-type EmployeeWithRoleRow = {
+type RolePermissionRow = {
+  route: string;
+};
+
+type RoleWithPermissionsRow = {
+  id: string;
+  code: string;
+  name: string;
+  app: string;
+  is_system: boolean;
+  role_permissions: RolePermissionRow[];
+};
+
+type EmployeeRoleRow = {
+  roles: RoleWithPermissionsRow | RoleWithPermissionsRow[] | null;
+};
+
+type EmployeeWithRolesRow = {
   id: string;
   full_name: string | null;
   email: string;
   is_active: boolean;
-  role_id: string;
-  roles: EmployeeRole | EmployeeRole[] | null;
+  employee_roles: EmployeeRoleRow[];
 };
 
 export type SyncedEmployee = {
@@ -28,28 +46,40 @@ export type SyncedEmployee = {
   full_name: string | null;
   email: string;
   is_active: boolean;
-  role_id: string;
-  role: EmployeeRole | null;
+  roles: EmployeeRole[];
 };
 
-const employeeSelectColumns = 'id, full_name, email, is_active, role_id, roles!employees_role_id_fkey(id, code, name, is_system)';
+const employeeSelectColumns =
+  'id, full_name, email, is_active, employee_roles(roles(id, code, name, app, is_system, role_permissions(route)))';
 
-function normalizeRole(value: EmployeeRole | EmployeeRole[] | null): EmployeeRole | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
+function normalizeRoleRow(value: RoleWithPermissionsRow | RoleWithPermissionsRow[] | null): RoleWithPermissionsRow | null {
+  if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
 }
 
-function mapEmployeeRow(row: EmployeeWithRoleRow): SyncedEmployee {
+function mapRoleRow(raw: RoleWithPermissionsRow): EmployeeRole {
+  return {
+    id: raw.id,
+    code: raw.code,
+    name: raw.name,
+    app: raw.app as 'cms' | 'emp',
+    is_system: raw.is_system,
+    routes: (raw.role_permissions ?? []).map((p) => p.route)
+  };
+}
+
+function mapEmployeeRow(row: EmployeeWithRolesRow): SyncedEmployee {
+  const roles: EmployeeRole[] = [];
+  for (const er of row.employee_roles ?? []) {
+    const raw = normalizeRoleRow(er.roles);
+    if (raw) roles.push(mapRoleRow(raw));
+  }
   return {
     id: row.id,
     full_name: row.full_name,
     email: row.email,
     is_active: row.is_active,
-    role_id: row.role_id,
-    role: normalizeRole(row.roles)
+    roles
   };
 }
 
@@ -61,7 +91,7 @@ async function findEmployeeByUser(userId: string, email: string): Promise<Synced
     .from('employees')
     .select(employeeSelectColumns)
     .eq('auth_user_id', userId)
-    .maybeSingle<EmployeeWithRoleRow>();
+    .maybeSingle<EmployeeWithRolesRow>();
 
   if (byUserIdResult.error) {
     throw new Error(byUserIdResult.error.message);
@@ -76,7 +106,7 @@ async function findEmployeeByUser(userId: string, email: string): Promise<Synced
     .from('employees')
     .select(employeeSelectColumns)
     .eq('email', email)
-    .maybeSingle<EmployeeWithRoleRow>();
+    .maybeSingle<EmployeeWithRolesRow>();
 
   if (byEmailResult.error) {
     throw new Error(byEmailResult.error.message);
@@ -98,13 +128,34 @@ async function updateEmployeeById(id: string, input: SyncEmployeeInput): Promise
     })
     .eq('id', id)
     .select(employeeSelectColumns)
-    .single<EmployeeWithRoleRow>();
+    .single<EmployeeWithRolesRow>();
 
   if (error || !data) {
     throw new Error(error?.message ?? 'Failed to sync employee data');
   }
 
   return mapEmployeeRow(data);
+}
+
+async function assignDefaultRole(employeeId: string): Promise<void> {
+  const supabase = createSupabaseAdminClient();
+
+  const roleResult = await supabase
+    .schema('presence')
+    .from('roles')
+    .select('id')
+    .eq('code', 'EMPLOYEE')
+    .single<{ id: string }>();
+
+  if (roleResult.error || !roleResult.data) {
+    throw new Error(roleResult.error?.message ?? 'EMPLOYEE role not found');
+  }
+
+  await supabase
+    .schema('presence')
+    .from('employee_roles')
+    .insert({ employee_id: employeeId, role_id: roleResult.data.id, assigned_by: null })
+    .throwOnError();
 }
 
 export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmployee> {
@@ -140,6 +191,7 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
     return updateEmployeeById(byEmailResult.data.id, input);
   }
 
+  // New employee — insert and auto-assign EMPLOYEE role
   const insertResult = await supabase
     .schema('presence')
     .from('employees')
@@ -149,17 +201,19 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
       full_name: input.fullName,
       avatar_url: input.avatarUrl
     })
-    .select(employeeSelectColumns)
-    .single<EmployeeWithRoleRow>();
+    .select('id')
+    .single<{ id: string }>();
 
   if (insertResult.data) {
-    return mapEmployeeRow(insertResult.data);
+    await assignDefaultRole(insertResult.data.id);
+    return updateEmployeeById(insertResult.data.id, input);
   }
 
   if (!insertResult.error) {
     throw new Error('Failed to sync employee data');
   }
 
+  // Race condition: another request inserted the same email
   if (insertResult.error.code === '23505') {
     const fallbackByEmailResult = await supabase
       .schema('presence')
@@ -178,7 +232,32 @@ export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmpl
   throw new Error(insertResult.error.message);
 }
 
-export async function findEmployeeRoleByUser(userId: string, email: string): Promise<EmployeeRole | null> {
+/** Returns the employee's roles, used for authorization checks. */
+export async function findEmployeeRolesByUser(userId: string, email: string): Promise<EmployeeRole[]> {
   const employee = await findEmployeeByUser(userId, email);
-  return employee?.role ?? null;
+  return employee?.roles ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Authorization helpers — used by middleware and page guards
+// ---------------------------------------------------------------------------
+
+/** True if the user has at least one role targeting the CMS app. */
+export function hasAccessToCMS(roles: EmployeeRole[]): boolean {
+  return roles.some((r) => r.app === 'cms');
+}
+
+/** True if the user has at least one role targeting the Employee App. */
+export function hasAccessToEmp(roles: EmployeeRole[]): boolean {
+  return roles.some((r) => r.app === 'emp');
+}
+
+/** True if any of the user's roles grants access to `route` in `app`. */
+export function hasRouteAccess(roles: EmployeeRole[], app: 'cms' | 'emp', route: string): boolean {
+  return roles.some((r) => r.app === app && r.routes.includes(route));
+}
+
+/** True if the user can manage roles (has CMS access + permission to /roles route). */
+export function canManageRoles(roles: EmployeeRole[]): boolean {
+  return hasRouteAccess(roles, 'cms', 'roles');
 }

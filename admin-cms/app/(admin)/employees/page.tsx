@@ -15,19 +15,9 @@ type EmployeeRow = {
   email: string;
   auth_user_id: string | null;
   is_active: boolean;
-  role_id: string;
-  roles:
-    | {
-        id: string;
-        code: string;
-        name: string;
-      }
-    | Array<{
-        id: string;
-        code: string;
-        name: string;
-      }>
-    | null;
+  employee_roles: Array<{
+    roles: { id: string; code: string; name: string; app: string } | null;
+  }>;
   created_at: string;
 };
 
@@ -76,7 +66,7 @@ export default async function EmployeeManagementPage({ searchParams }: PageProps
   let employeeQuery = supabase
     .schema('presence')
     .from('employees')
-    .select('id, full_name, email, auth_user_id, is_active, role_id, roles!employees_role_id_fkey(id, code, name), created_at', {
+    .select('id, full_name, email, auth_user_id, is_active, employee_roles(roles(id, code, name, app)), created_at', {
       count: 'exact'
     });
 

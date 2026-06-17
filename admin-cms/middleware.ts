@@ -8,6 +8,21 @@ import {
   isAuthorizedAdmin,
   refreshAdminSession
 } from '@/lib/auth/shared';
+import { hasRouteAccess } from '@/lib/employee/sync';
+
+// Map pathname prefix → route key (must match role_permissions.route values)
+const ROUTE_MAP: Array<{ prefix: string; key: string }> = [
+  { prefix: '/employees', key: 'employees' },
+  { prefix: '/roles', key: 'roles' },
+  { prefix: '/presences', key: 'presences' },
+  { prefix: '/access-requests', key: 'access-requests' },
+  { prefix: '/dashboard', key: 'dashboard' }
+];
+
+function getRouteKey(pathname: string): string | null {
+  const match = ROUTE_MAP.find((r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`));
+  return match?.key ?? null;
+}
 
 const publicPaths = ['/', '/auth/callback', '/api/auth/session', '/api/auth/sign-out', '/not-authorized'];
 
@@ -109,6 +124,14 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname === '/' || pathname === '/not-authorized') {
     const response = createRedirectResponse(request, '/dashboard');
+    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    return response;
+  }
+
+  // Per-route access check
+  const routeKey = getRouteKey(pathname);
+  if (routeKey && !hasRouteAccess(user.roles, 'cms', routeKey)) {
+    const response = createRedirectResponse(request, '/not-authorized');
     setAuthCookies(response, activeAccessToken, activeRefreshToken);
     return response;
   }

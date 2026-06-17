@@ -23,34 +23,34 @@ export default async function EditEmployeePage({ params }: PageProps) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const [{ data, error }, { data: roleData, error: roleError }] = await Promise.all([
-    supabase
-      .schema('presence')
-      .from('employees')
-      .select('id, full_name, email, auth_user_id, is_active, role_id')
-      .eq('id', parsedId.data)
-      .maybeSingle(),
-    supabase
-      .schema('presence')
-      .from('roles')
-      .select('id, code, name')
-      .order('is_system', { ascending: false })
-      .order('name', { ascending: true })
-  ]);
+  const [{ data, error }, { data: roleData, error: roleError }, { data: assignedData, error: assignedError }] =
+    await Promise.all([
+      supabase
+        .schema('presence')
+        .from('employees')
+        .select('id, full_name, email, auth_user_id, is_active')
+        .eq('id', parsedId.data)
+        .maybeSingle(),
+      supabase
+        .schema('presence')
+        .from('roles')
+        .select('id, code, name, app')
+        .order('app', { ascending: true })
+        .order('name', { ascending: true }),
+      supabase
+        .schema('presence')
+        .from('employee_roles')
+        .select('role_id')
+        .eq('employee_id', parsedId.data)
+    ]);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+  if (roleError) throw new Error(roleError.message);
+  if (assignedError) throw new Error(assignedError.message);
+  if (!data) notFound();
 
-  if (roleError) {
-    throw new Error(roleError.message);
-  }
-
-  if (!data) {
-    notFound();
-  }
-
-  const roles = roleData ?? [];
+  const roles = (roleData ?? []) as Array<{ id: string; code: string; name: string; app: string }>;
+  const assignedRoleIds = (assignedData ?? []).map((r: { role_id: string }) => r.role_id);
 
   return (
     <main className="space-y-6">
@@ -67,7 +67,7 @@ export default async function EditEmployeePage({ params }: PageProps) {
           fullName: data.full_name ?? '',
           authUserId: data.auth_user_id ?? '',
           isActive: data.is_active,
-          roleId: data.role_id
+          roleIds: assignedRoleIds
         }}
         roles={roles}
       />

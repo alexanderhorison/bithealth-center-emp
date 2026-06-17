@@ -17,7 +17,7 @@ type ActionResult = {
 };
 
 export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<ActionResult> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const parsed = saveEmployeeSchema.safeParse(input);
 
@@ -32,26 +32,50 @@ export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<Acti
   const values = parsed.data;
 
   if (values.id) {
-    const { error } = await supabase
+    // Update employee profile
+    const { error: updateError } = await supabase
       .schema('presence')
       .from('employees')
       .update({
         email: values.email,
         full_name: values.fullName,
         auth_user_id: values.authUserId || null,
-        is_active: values.isActive,
-        role_id: values.roleId
+        is_active: values.isActive
       })
       .eq('id', values.id);
 
-    if (error) {
-      return {
-        success: false,
-        message: error.message
-      };
+    if (updateError) {
+      return { success: false, message: updateError.message };
+    }
+
+    // Sync employee_roles: delete all existing, insert new
+    const { error: deleteError } = await supabase
+      .schema('presence')
+      .from('employee_roles')
+      .delete()
+      .eq('employee_id', values.id);
+
+    if (deleteError) {
+      return { success: false, message: deleteError.message };
+    }
+
+    const { error: insertError } = await supabase
+      .schema('presence')
+      .from('employee_roles')
+      .insert(
+        values.roleIds.map((roleId) => ({
+          employee_id: values.id!,
+          role_id: roleId,
+          assigned_by: admin.id
+        }))
+      );
+
+    if (insertError) {
+      return { success: false, message: insertError.message };
     }
   } else {
-    const { error } = await supabase
+    // Upsert employee (insert or update on email conflict)
+    const { data: employeeData, error: upsertError } = await supabase
       .schema('presence')
       .from('employees')
       .upsert(
@@ -59,19 +83,43 @@ export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<Acti
           email: values.email,
           full_name: values.fullName,
           auth_user_id: values.authUserId || null,
-          is_active: values.isActive,
-          role_id: values.roleId
+          is_active: values.isActive
         },
-        {
-          onConflict: 'email'
-        }
+        { onConflict: 'email' }
+      )
+      .select('id')
+      .single<{ id: string }>();
+
+    if (upsertError || !employeeData) {
+      return { success: false, message: upsertError?.message ?? 'Failed to create employee' };
+    }
+
+    const employeeId = employeeData.id;
+
+    // Replace roles
+    const { error: deleteError } = await supabase
+      .schema('presence')
+      .from('employee_roles')
+      .delete()
+      .eq('employee_id', employeeId);
+
+    if (deleteError) {
+      return { success: false, message: deleteError.message };
+    }
+
+    const { error: insertError } = await supabase
+      .schema('presence')
+      .from('employee_roles')
+      .insert(
+        values.roleIds.map((roleId) => ({
+          employee_id: employeeId,
+          role_id: roleId,
+          assigned_by: admin.id
+        }))
       );
 
-    if (error) {
-      return {
-        success: false,
-        message: error.message
-      };
+    if (insertError) {
+      return { success: false, message: insertError.message };
     }
   }
 

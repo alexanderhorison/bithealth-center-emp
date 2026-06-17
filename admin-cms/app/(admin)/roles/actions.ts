@@ -21,16 +21,14 @@ export async function saveRoleAction(input: SaveRoleInput): Promise<ActionResult
 
   const parsed = saveRoleSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      success: false,
-      message: parsed.error.issues[0]?.message ?? 'Invalid role payload'
-    };
+    return { success: false, message: parsed.error.issues[0]?.message ?? 'Invalid role payload' };
   }
 
   const supabase = createSupabaseAdminClient();
   const values = parsed.data;
 
   if (values.id) {
+    // Fetch existing to guard system roles
     const { data: existingRole, error: existingRoleError } = await supabase
       .schema('presence')
       .from('roles')
@@ -38,66 +36,61 @@ export async function saveRoleAction(input: SaveRoleInput): Promise<ActionResult
       .eq('id', values.id)
       .maybeSingle<{ is_system: boolean; code: string }>();
 
-    if (existingRoleError) {
-      return {
-        success: false,
-        message: existingRoleError.message
-      };
-    }
+    if (existingRoleError) return { success: false, message: existingRoleError.message };
+    if (!existingRole) return { success: false, message: 'Role not found' };
 
-    if (!existingRole) {
-      return {
-        success: false,
-        message: 'Role not found'
-      };
-    }
+    // System roles: cannot change code or app
+    const corePayload = existingRole.is_system
+      ? { name: values.name, description: values.description || null }
+      : { code: values.code, name: values.name, description: values.description || null, app: values.app };
 
-    const payload =
-      existingRole.is_system && existingRole.code !== values.code
-        ? {
-            name: values.name,
-            description: values.description || null
-          }
-        : {
-            code: values.code,
-            name: values.name,
-            description: values.description || null
-          };
-
-    const { error } = await supabase.schema('presence').from('roles').update(payload).eq('id', values.id);
-
-    if (error) {
-      return {
-        success: false,
-        message: error.message
-      };
-    }
-  } else {
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .schema('presence')
       .from('roles')
-      .insert({
-        code: values.code,
-        name: values.name,
-        description: values.description || null,
-        is_system: false
-      });
+      .update(corePayload)
+      .eq('id', values.id);
 
-    if (error) {
-      return {
-        success: false,
-        message: error.message
-      };
+    if (updateError) return { success: false, message: updateError.message };
+
+    // Sync permissions (skip for system roles — they're managed via migrations)
+    if (!existingRole.is_system) {
+      await supabase.schema('presence').from('role_permissions').delete().eq('role_id', values.id);
+
+      if (values.routes.length > 0) {
+        const { error: permError } = await supabase
+          .schema('presence')
+          .from('role_permissions')
+          .insert(values.routes.map((route) => ({ role_id: values.id!, route })));
+
+        if (permError) return { success: false, message: permError.message };
+      }
+    }
+  } else {
+    // Insert new role
+    const { data: newRole, error: insertError } = await supabase
+      .schema('presence')
+      .from('roles')
+      .insert({ code: values.code, name: values.name, description: values.description || null, is_system: false, app: values.app })
+      .select('id')
+      .single<{ id: string }>();
+
+    if (insertError || !newRole) return { success: false, message: insertError?.message ?? 'Failed to create role' };
+
+    // Insert permissions
+    if (values.routes.length > 0) {
+      const { error: permError } = await supabase
+        .schema('presence')
+        .from('role_permissions')
+        .insert(values.routes.map((route) => ({ role_id: newRole.id, route })));
+
+      if (permError) return { success: false, message: permError.message };
     }
   }
 
   revalidatePath('/roles');
   revalidatePath('/employees');
 
-  return {
-    success: true,
-    message: 'Role saved successfully'
-  };
+  return { success: true, message: 'Role saved successfully' };
 }
 
 export async function deleteRoleAction(input: DeleteRoleInput): Promise<ActionResult> {
@@ -105,10 +98,7 @@ export async function deleteRoleAction(input: DeleteRoleInput): Promise<ActionRe
 
   const parsed = deleteRoleSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      success: false,
-      message: parsed.error.issues[0]?.message ?? 'Invalid role payload'
-    };
+    return { success: false, message: parsed.error.issues[0]?.message ?? 'Invalid role payload' };
   }
 
   const supabase = createSupabaseAdminClient();
@@ -120,61 +110,92 @@ export async function deleteRoleAction(input: DeleteRoleInput): Promise<ActionRe
     .eq('id', parsed.data.id)
     .maybeSingle<{ id: string; is_system: boolean }>();
 
-  if (roleError) {
-    return {
-      success: false,
-      message: roleError.message
-    };
-  }
+  if (roleError) return { success: false, message: roleError.message };
+  if (!role) return { success: false, message: 'Role not found' };
+  if (role.is_system) return { success: false, message: 'System role cannot be deleted' };
 
-  if (!role) {
-    return {
-      success: false,
-      message: 'Role not found'
-    };
-  }
-
-  if (role.is_system) {
-    return {
-      success: false,
-      message: 'System role cannot be deleted'
-    };
-  }
-
+  // Check if still assigned to any employees
   const { count, error: usageError } = await supabase
     .schema('presence')
-    .from('employees')
+    .from('employee_roles')
     .select('id', { count: 'exact', head: true })
     .eq('role_id', role.id);
 
-  if (usageError) {
-    return {
-      success: false,
-      message: usageError.message
-    };
-  }
-
-  if ((count ?? 0) > 0) {
-    return {
-      success: false,
-      message: 'Role is still assigned to employees'
-    };
-  }
+  if (usageError) return { success: false, message: usageError.message };
+  if ((count ?? 0) > 0) return { success: false, message: 'Role is still assigned to employees' };
 
   const { error } = await supabase.schema('presence').from('roles').delete().eq('id', role.id);
-
-  if (error) {
-    return {
-      success: false,
-      message: error.message
-    };
-  }
+  if (error) return { success: false, message: error.message };
 
   revalidatePath('/roles');
   revalidatePath('/employees');
 
-  return {
-    success: true,
-    message: 'Role deleted successfully'
-  };
+  return { success: true, message: 'Role deleted successfully' };
+}
+
+// ---------------------------------------------------------------------------
+// Employee role management actions
+// ---------------------------------------------------------------------------
+
+export async function assignRoleToEmployeeAction(employeeId: string, roleId: string): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  const { canManageRoles } = await import('@/lib/employee/sync');
+
+  if (!canManageRoles(admin.roles)) {
+    return { success: false, message: 'Not authorized to manage roles' };
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  // Resolve admin's employee record for assigned_by
+  const { data: adminEmployee } = await supabase
+    .schema('presence')
+    .from('employees')
+    .select('id')
+    .eq('auth_user_id', admin.id)
+    .maybeSingle<{ id: string }>();
+
+  const { error } = await supabase
+    .schema('presence')
+    .from('employee_roles')
+    .insert({ employee_id: employeeId, role_id: roleId, assigned_by: adminEmployee?.id ?? null });
+
+  if (error) return { success: false, message: error.code === '23505' ? 'Role already assigned' : error.message };
+
+  revalidatePath(`/employees/${employeeId}/edit`);
+  return { success: true, message: 'Role assigned' };
+}
+
+export async function removeRoleFromEmployeeAction(employeeId: string, roleId: string): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  const { canManageRoles } = await import('@/lib/employee/sync');
+
+  if (!canManageRoles(admin.roles)) {
+    return { success: false, message: 'Not authorized to manage roles' };
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  // Prevent removing the last role
+  const { count } = await supabase
+    .schema('presence')
+    .from('employee_roles')
+    .select('id', { count: 'exact', head: true })
+    .eq('employee_id', employeeId);
+
+  if ((count ?? 0) <= 1) {
+    return { success: false, message: 'Employee must have at least one role' };
+  }
+
+  const { error } = await supabase
+    .schema('presence')
+    .from('employee_roles')
+    .delete()
+    .eq('employee_id', employeeId)
+    .eq('role_id', roleId);
+
+  if (error) return { success: false, message: error.message };
+
+  revalidatePath(`/employees/${employeeId}/edit`);
+  return { success: true, message: 'Role removed' };
 }

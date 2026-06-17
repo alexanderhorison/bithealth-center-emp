@@ -20,6 +20,7 @@ type EmployeeFormProps = {
     id: string;
     code: string;
     name: string;
+    app: string;
   }>;
 };
 
@@ -34,7 +35,7 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
       fullName: initialValues?.fullName ?? '',
       authUserId: initialValues?.authUserId ?? '',
       isActive: initialValues?.isActive ?? true,
-      roleId: initialValues?.roleId ?? roles[0]?.id ?? ''
+      roleIds: initialValues?.roleIds ?? []
     }
   });
 
@@ -58,7 +59,7 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
           fullName: values.fullName,
           authUserId: values.authUserId ?? '',
           isActive: values.isActive,
-          roleId: values.roleId
+          roleIds: values.roleIds
         };
 
         await mutation.mutateAsync(payload);
@@ -93,24 +94,70 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
           />
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="roleId">Role</Label>
-          <select
-            id="roleId"
-            aria-label="Employee role"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            {...form.register('roleId')}
-            disabled={!hasRoles}
-          >
-            {roles.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name} ({role.code})
-              </option>
-            ))}
-          </select>
-          {!hasRoles ? <p className="text-sm text-destructive">No roles available. Create role first.</p> : null}
-          {form.formState.errors.roleId ? <p className="text-sm text-destructive">{form.formState.errors.roleId.message}</p> : null}
-        </div>
+      </div>
+
+      {/* Role assignment grouped by app */}
+      <div className="grid gap-2">
+        <Label>Roles</Label>
+        {!hasRoles ? (
+          <p className="text-sm text-destructive">No roles available. Create role first.</p>
+        ) : (
+          <Controller
+            control={form.control}
+            name="roleIds"
+            render={({ field }) => {
+              const selected: string[] = field.value ?? [];
+              const toggle = (id: string) => {
+                field.onChange(
+                  selected.includes(id) ? selected.filter((r) => r !== id) : [...selected, id]
+                );
+              };
+              const cmsRoles = roles.filter((r) => r.app === 'cms');
+              const empRoles = roles.filter((r) => r.app === 'emp');
+              return (
+                <div className="grid gap-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  {cmsRoles.length > 0 && (
+                    <div className="grid gap-1.5">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">CMS</p>
+                      {cmsRoles.map((role) => (
+                        <label key={role.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-stone-300"
+                            checked={selected.includes(role.id)}
+                            onChange={() => toggle(role.id)}
+                          />
+                          <span>{role.name}</span>
+                          <span className="text-xs text-muted-foreground">({role.code})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {empRoles.length > 0 && (
+                    <div className="grid gap-1.5">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee App</p>
+                      {empRoles.map((role) => (
+                        <label key={role.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-stone-300"
+                            checked={selected.includes(role.id)}
+                            onChange={() => toggle(role.id)}
+                          />
+                          <span>{role.name}</span>
+                          <span className="text-xs text-muted-foreground">({role.code})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }}
+          />
+        )}
+        {form.formState.errors.roleIds ? (
+          <p className="text-sm text-destructive">{form.formState.errors.roleIds.message}</p>
+        ) : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

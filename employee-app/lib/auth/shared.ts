@@ -1,6 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 
 import { getServerEnv } from '@/lib/env';
+import { hasAccessToEmp, type EmployeeRole } from '@/lib/employee/sync';
 
 export const employeeAccessTokenCookieName = 'bh_employee_at';
 export const employeeRefreshTokenCookieName = 'bh_employee_rt';
@@ -13,15 +14,7 @@ export type AuthenticatedEmployeeUser = {
   email: string;
   fullName: string | null;
   avatarUrl: string | null;
-};
-
-type EmployeeStatus = {
-  isActive: boolean;
-  roleCode: string | null;
-};
-
-type RoleRow = {
-  code: string;
+  roles: EmployeeRole[];
 };
 
 function getStringMetadataValue(metadata: Record<string, unknown> | null | undefined, key: string): string | null {
@@ -39,7 +32,7 @@ export function isAllowedEmployeeEmail(email: string): boolean {
   return email.toLowerCase().endsWith(`@${domain}`);
 }
 
-export function mapSupabaseUser(user: User): AuthenticatedEmployeeUser | null {
+export function mapSupabaseUser(user: User): Omit<AuthenticatedEmployeeUser, 'roles'> | null {
   if (!user.email) {
     return null;
   }
@@ -78,65 +71,108 @@ function createSupabaseServiceClient() {
   });
 }
 
-function normalizeRoleCode(roles: RoleRow | RoleRow[] | null | undefined): string | null {
-  const row = Array.isArray(roles) ? roles[0] : roles;
-  return row?.code ?? null;
+type RolePermissionRow = { route: string };
+type RoleWithPermissionsRow = {
+  id: string;
+  code: string;
+  name: string;
+  app: string;
+  is_system: boolean;
+  role_permissions: RolePermissionRow[];
+};
+type EmployeeRoleJoinRow = {
+  roles: RoleWithPermissionsRow | RoleWithPermissionsRow[] | null;
+};
+type EmployeeStatusRow = {
+  is_active: boolean;
+  employee_roles: EmployeeRoleJoinRow[];
+};
+
+function normalizeRoleRow(v: RoleWithPermissionsRow | RoleWithPermissionsRow[] | null): RoleWithPermissionsRow | null {
+  if (Array.isArray(v)) return v[0] ?? null;
+  return v ?? null;
 }
 
-async function getEmployeeStatus(userId: string, email: string): Promise<EmployeeStatus | null> {
+function mapRoleRow(raw: RoleWithPermissionsRow): EmployeeRole {
+  return {
+    id: raw.id,
+    code: raw.code,
+    name: raw.name,
+    app: raw.app as 'cms' | 'emp',
+    is_system: raw.is_system,
+    routes: (raw.role_permissions ?? []).map((p) => p.route)
+  };
+}
+
+const employeeStatusSelect =
+  'is_active, employee_roles(roles(id, code, name, app, is_system, role_permissions(route)))';
+
+async function getEmployeeStatus(
+  userId: string,
+  email: string
+): Promise<{ isActive: boolean; roles: EmployeeRole[] } | null> {
   const supabase = createSupabaseServiceClient();
 
   const byUserIdResult = await supabase
     .schema('presence')
     .from('employees')
-    .select('is_active, roles!employees_role_id_fkey(code)')
+    .select(employeeStatusSelect)
     .eq('auth_user_id', userId)
-    .maybeSingle<{ is_active: boolean; roles: RoleRow | RoleRow[] | null }>();
+    .maybeSingle<EmployeeStatusRow>();
 
-  if (!byUserIdResult.error && byUserIdResult.data) {
-    return {
-      isActive: byUserIdResult.data.is_active,
-      roleCode: normalizeRoleCode(byUserIdResult.data.roles)
-    };
+  const row = byUserIdResult.error ? null : byUserIdResult.data;
+
+  if (!row) {
+    const byEmailResult = await supabase
+      .schema('presence')
+      .from('employees')
+      .select(employeeStatusSelect)
+      .eq('email', email)
+      .maybeSingle<EmployeeStatusRow>();
+
+    if (byEmailResult.error || !byEmailResult.data) return null;
+
+    const roles = (byEmailResult.data.employee_roles ?? [])
+      .map((er) => normalizeRoleRow(er.roles))
+      .filter((r): r is RoleWithPermissionsRow => r !== null)
+      .map(mapRoleRow);
+
+    return { isActive: byEmailResult.data.is_active, roles };
   }
 
-  const byEmailResult = await supabase
-    .schema('presence')
-    .from('employees')
-    .select('is_active, roles!employees_role_id_fkey(code)')
-    .eq('email', email)
-    .maybeSingle<{ is_active: boolean; roles: RoleRow | RoleRow[] | null }>();
+  const roles = (row.employee_roles ?? [])
+    .map((er) => normalizeRoleRow(er.roles))
+    .filter((r): r is RoleWithPermissionsRow => r !== null)
+    .map(mapRoleRow);
 
-  if (!byEmailResult.error && byEmailResult.data) {
-    return {
-      isActive: byEmailResult.data.is_active,
-      roleCode: normalizeRoleCode(byEmailResult.data.roles)
-    };
+  return { isActive: row.is_active, roles };
+}
+
+async function resolveEmployeeUser(
+  base: Omit<AuthenticatedEmployeeUser, 'roles'>
+): Promise<AuthenticatedEmployeeUser | null> {
+  const status = await getEmployeeStatus(base.id, base.email);
+
+  // Not in DB yet — allow through if domain matches (syncEmployee will run on first load)
+  if (!status) {
+    if (!isAllowedEmployeeEmail(base.email)) return null;
+    return { ...base, roles: [] };
+  }
+
+  // Inactive employees are always denied
+  if (!status.isActive) return null;
+
+  // Active + company email = allow
+  if (isAllowedEmployeeEmail(base.email)) {
+    return { ...base, roles: status.roles };
+  }
+
+  // Active + has any emp role = allow (non-domain override)
+  if (hasAccessToEmp(status.roles)) {
+    return { ...base, roles: status.roles };
   }
 
   return null;
-}
-
-async function isAllowedEmployeeUser(user: AuthenticatedEmployeeUser): Promise<boolean> {
-  const status = await getEmployeeStatus(user.id, user.email);
-
-  // Not in DB yet — allow through if domain check passes (will sync on first Server Action)
-  if (!status) {
-    return isAllowedEmployeeEmail(user.email);
-  }
-
-  // Inactive employees are always denied, regardless of domain or role
-  if (!status.isActive) {
-    return false;
-  }
-
-  // Active + company email domain = allow
-  if (isAllowedEmployeeEmail(user.email)) {
-    return true;
-  }
-
-  // Active + ADMIN role = allow (non-domain override)
-  return status.roleCode === 'ADMIN';
 }
 
 export async function getEmployeeUserFromAccessToken(token: string): Promise<AuthenticatedEmployeeUser | null> {
@@ -148,12 +184,9 @@ export async function getEmployeeUserFromAccessToken(token: string): Promise<Aut
   }
 
   const mapped = mapSupabaseUser(data.user);
+  if (!mapped) return null;
 
-  if (!mapped || !(await isAllowedEmployeeUser(mapped))) {
-    return null;
-  }
-
-  return mapped;
+  return resolveEmployeeUser(mapped);
 }
 
 export async function refreshEmployeeSession(refreshToken: string): Promise<{
@@ -171,43 +204,26 @@ export async function refreshEmployeeSession(refreshToken: string): Promise<{
   }
 
   const mapped = mapSupabaseUser(data.user);
+  if (!mapped) return null;
 
-  if (!mapped || !(await isAllowedEmployeeUser(mapped))) {
-    return null;
-  }
+  const user = await resolveEmployeeUser(mapped);
+  if (!user) return null;
 
   return {
     accessToken: data.session.access_token,
     refreshToken: data.session.refresh_token,
-    user: mapped
+    user
   };
 }
 
 export function getEmployeeAuthCookieConfig(): {
-  accessToken: {
-    name: string;
-    maxAge: number;
-  };
-  refreshToken: {
-    name: string;
-    maxAge: number;
-  };
-  options: {
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: 'lax';
-    path: string;
-  };
+  accessToken: { name: string; maxAge: number };
+  refreshToken: { name: string; maxAge: number };
+  options: { httpOnly: boolean; secure: boolean; sameSite: 'lax'; path: string };
 } {
   return {
-    accessToken: {
-      name: employeeAccessTokenCookieName,
-      maxAge: accessTokenMaxAge
-    },
-    refreshToken: {
-      name: employeeRefreshTokenCookieName,
-      maxAge: refreshTokenMaxAge
-    },
+    accessToken: { name: employeeAccessTokenCookieName, maxAge: accessTokenMaxAge },
+    refreshToken: { name: employeeRefreshTokenCookieName, maxAge: refreshTokenMaxAge },
     options: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

@@ -7,8 +7,20 @@ import {
   getEmployeeUserFromAccessToken,
   refreshEmployeeSession
 } from '@/lib/auth/shared';
+import { hasRouteAccess } from '@/lib/employee/sync';
 
-const publicPaths = ['/', '/auth/callback', '/api/auth/session', '/api/auth/sign-out'];
+// Map pathname prefix → route key (must match role_permissions.route values)
+const ROUTE_MAP: Array<{ prefix: string; key: string }> = [
+  { prefix: '/presence', key: 'presence' },
+  { prefix: '/account-request', key: 'account-request' }
+];
+
+function getRouteKey(pathname: string): string | null {
+  const match = ROUTE_MAP.find((r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`));
+  return match?.key ?? null;
+}
+
+const publicPaths = ['/', '/auth/callback', '/api/auth/session', '/api/auth/sign-out', '/not-authorized'];
 
 function isPublicPath(pathname: string): boolean {
   return publicPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -96,6 +108,14 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname === '/') {
     const response = createRedirectResponse(request, '/modules');
+    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    return response;
+  }
+
+  // Per-route access check
+  const routeKey = getRouteKey(pathname);
+  if (routeKey && !hasRouteAccess(user.roles, routeKey)) {
+    const response = createRedirectResponse(request, '/not-authorized');
     setAuthCookies(response, activeAccessToken, activeRefreshToken);
     return response;
   }

@@ -4,40 +4,49 @@ import { ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/layout/page-header';
 import { requireEmployeeUser } from '@/lib/auth/server';
+import { hasRouteAccess } from '@/lib/employee/sync';
 
 export default async function ModulesPage() {
   const user = await requireEmployeeUser();
+
+  const canPresence = hasRouteAccess(user.roles, 'presence');
+  const canAccountRequest = hasRouteAccess(user.roles, 'account-request');
+
   return (
     <main className="min-h-screen bg-stone-100">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
         <PageHeader fullName={user.fullName} email={user.email} />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Link href="/presence" className="block">
-            <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
-              <CardHeader>
-                <CardTitle>Presence</CardTitle>
-                <CardDescription>Submit your daily status and optional selfie.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-sm font-medium text-zinc-700">
-                Open module
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </CardContent>
-            </Card>
-          </Link>
+          {canPresence && (
+            <Link href="/presence" className="block">
+              <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
+                <CardHeader>
+                  <CardTitle>Presence</CardTitle>
+                  <CardDescription>Submit your daily status and optional selfie.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between text-sm font-medium text-zinc-700">
+                  Open module
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </CardContent>
+              </Card>
+            </Link>
+          )}
 
-          <Link href="/account-request" className="block">
-            <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
-              <CardHeader>
-                <CardTitle>Account Request</CardTitle>
-                <CardDescription>Request GitHub repo access or Figma access.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-sm font-medium text-zinc-700">
-                Open module
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </CardContent>
-            </Card>
-          </Link>
+          {canAccountRequest && (
+            <Link href="/account-request" className="block">
+              <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
+                <CardHeader>
+                  <CardTitle>Account Request</CardTitle>
+                  <CardDescription>Request GitHub repo access or Figma access.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between text-sm font-medium text-zinc-700">
+                  Open module
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </CardContent>
+              </Card>
+            </Link>
+          )}
 
           <Card className="h-full border-dashed border-stone-300 bg-stone-100/70 text-zinc-500">
             <CardHeader>

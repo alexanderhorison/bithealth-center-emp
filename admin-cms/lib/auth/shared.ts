@@ -1,7 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 
 import { getServerEnv } from '@/lib/env';
-import { findEmployeeRoleByUser, type EmployeeRole } from '@/lib/employee/sync';
+import { findEmployeeRolesByUser, hasAccessToCMS, type EmployeeRole } from '@/lib/employee/sync';
 
 export const adminAccessTokenCookieName = 'bh_admin_at';
 export const adminRefreshTokenCookieName = 'bh_admin_rt';
@@ -14,7 +14,7 @@ export type AuthenticatedAdminUser = {
   email: string;
   fullName: string | null;
   avatarUrl: string | null;
-  role: EmployeeRole;
+  roles: EmployeeRole[];
 };
 
 type AuthenticatedBaseUser = {
@@ -29,8 +29,9 @@ function getStringMetadataValue(metadata: Record<string, unknown> | null | undef
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+/** True if the user has access to the CMS (any cms-app role). */
 export function isAuthorizedAdmin(user: AuthenticatedAdminUser): boolean {
-  return user.role.code === 'ADMIN';
+  return hasAccessToCMS(user.roles);
 }
 
 export function mapSupabaseUser(user: User): AuthenticatedBaseUser | null {
@@ -75,16 +76,14 @@ export async function getAdminUserFromAccessToken(token: string): Promise<Authen
     return null;
   }
 
-  const role = await findEmployeeRoleByUser(mapped.id, mapped.email);
+  const roles = await findEmployeeRolesByUser(mapped.id, mapped.email);
 
-  if (!role) {
+  // Must have at least one CMS role to use the admin app
+  if (!hasAccessToCMS(roles)) {
     return null;
   }
 
-  return {
-    ...mapped,
-    role
-  };
+  return { ...mapped, roles };
 }
 
 export async function refreshAdminSession(refreshToken: string): Promise<{
@@ -106,47 +105,27 @@ export async function refreshAdminSession(refreshToken: string): Promise<{
     return null;
   }
 
-  const role = await findEmployeeRoleByUser(mapped.id, mapped.email);
+  const roles = await findEmployeeRolesByUser(mapped.id, mapped.email);
 
-  if (!role) {
+  if (!hasAccessToCMS(roles)) {
     return null;
   }
 
   return {
     accessToken: data.session.access_token,
     refreshToken: data.session.refresh_token,
-    user: {
-      ...mapped,
-      role
-    }
+    user: { ...mapped, roles }
   };
 }
 
 export function getAdminAuthCookieConfig(): {
-  accessToken: {
-    name: string;
-    maxAge: number;
-  };
-  refreshToken: {
-    name: string;
-    maxAge: number;
-  };
-  options: {
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: 'lax';
-    path: string;
-  };
+  accessToken: { name: string; maxAge: number };
+  refreshToken: { name: string; maxAge: number };
+  options: { httpOnly: boolean; secure: boolean; sameSite: 'lax'; path: string };
 } {
   return {
-    accessToken: {
-      name: adminAccessTokenCookieName,
-      maxAge: accessTokenMaxAge
-    },
-    refreshToken: {
-      name: adminRefreshTokenCookieName,
-      maxAge: refreshTokenMaxAge
-    },
+    accessToken: { name: adminAccessTokenCookieName, maxAge: accessTokenMaxAge },
+    refreshToken: { name: adminRefreshTokenCookieName, maxAge: refreshTokenMaxAge },
     options: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

@@ -18,19 +18,9 @@ type EmployeeRow = {
   email: string;
   auth_user_id: string | null;
   is_active: boolean;
-  role_id: string;
-  roles:
-    | {
-        id: string;
-        code: string;
-        name: string;
-      }
-    | Array<{
-        id: string;
-        code: string;
-        name: string;
-      }>
-    | null;
+  employee_roles: Array<{
+    roles: { id: string; code: string; name: string; app: string } | null;
+  }>;
   created_at: string;
 };
 
@@ -43,20 +33,10 @@ type EmployeeDataTableProps = {
   sortDir: TableSortDirection;
 };
 
-function normalizeRole(
-  role: EmployeeRow['roles']
-):
-  | {
-      id: string;
-      code: string;
-      name: string;
-    }
-  | null {
-  if (Array.isArray(role)) {
-    return role[0] ?? null;
-  }
-
-  return role ?? null;
+function getRoles(row: EmployeeRow): Array<{ id: string; code: string; name: string; app: string }> {
+  return (row.employee_roles ?? [])
+    .map((er) => (Array.isArray(er.roles) ? er.roles[0] : er.roles))
+    .filter((r): r is { id: string; code: string; name: string; app: string } => r !== null);
 }
 
 export function EmployeeDataTable({ rows, page, pageSize, totalCount, sortBy, sortDir }: EmployeeDataTableProps) {
@@ -131,19 +111,26 @@ export function EmployeeDataTable({ rows, page, pageSize, totalCount, sortBy, so
       },
       {
         id: 'role',
-        header: 'Role',
+        header: 'Roles',
         cell: ({ row }) => {
-          const role = normalizeRole(row.original.roles);
-          const isAdmin = role?.code === 'ADMIN';
+          const roles = getRoles(row.original);
+          if (!roles.length) return <span className="text-xs text-muted-foreground">Unassigned</span>;
           return (
-            <span
-              className={cn(
-                'inline-flex rounded-full px-2.5 py-1 text-xs font-medium',
-                isAdmin ? 'bg-zinc-800 text-zinc-100' : 'bg-zinc-200 text-zinc-700'
-              )}
-            >
-              {role?.name ?? 'Unassigned'}
-            </span>
+            <div className="flex flex-wrap gap-1">
+              {roles.map((r) => (
+                <span
+                  key={r.id}
+                  className={cn(
+                    'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                    r.code === 'SUPER_ADMIN' || r.code === 'ADMIN'
+                      ? 'bg-zinc-800 text-zinc-100'
+                      : 'bg-zinc-200 text-zinc-700'
+                  )}
+                >
+                  {r.name}
+                </span>
+              ))}
+            </div>
           );
         }
       },

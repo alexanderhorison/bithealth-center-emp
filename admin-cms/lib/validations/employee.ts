@@ -6,7 +6,7 @@ export const saveEmployeeSchema = z.object({
   fullName: z.string().min(1).max(120),
   authUserId: z.string().min(1).optional().or(z.literal('')),
   isActive: z.boolean(),
-  roleId: z.string().uuid()
+  roleIds: z.array(z.string().uuid()).min(1, 'At least one role is required')
 });
 
 export const toggleEmployeeSchema = z.object({
