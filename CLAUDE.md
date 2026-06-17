@@ -109,10 +109,117 @@ openspec/               # SDD spec artifacts (see SDD Workflow section)
 - Define Zod schemas co-located with forms or in `lib/schemas/`
 - Use shadcn/ui form primitives (`Input`, `Label`, `Textarea`, `Button`)
 
-### Auth
-- Supabase Auth with middleware (`middleware.ts`) for session protection
-- Auth callback handled at `app/auth/callback/`
-- Auth UI components in `components/auth/`
+### Authentication & Session
+- **Flow:** Google OAuth → Supabase → `/auth/callback` → `POST /api/auth/session` → httpOnly cookies → middleware
+- **Cookies:** `bh_employee_at` (access token, 1h TTL), `bh_employee_rt` (refresh token, 30d TTL)
+- **Domain restriction:** Only emails matching `COMPANY_EMAIL_DOMAIN` may sign in; `ADMIN` role users bypass this
+- **Middleware** (`middleware.ts`) validates/refreshes tokens on every non-public route
+- **`syncEmployee()`**: On every authenticated action, upserts employee by `clerk_user_id` → by `email` → insert if new
+- **No client-side Supabase calls** after auth callback — all DB access via Server Actions using admin client
+- Auth UI components in `components/auth/`; auth callback at `app/auth/callback/`
+
+### Server Actions (mutations)
+- All mutations are Server Actions (`'use server'`) — no REST endpoints for data mutations
+- `submitPresenceAction` — upsert today's presence record (status, selfie URL, note)
+- `uploadSelfieAction` — upload selfie to `presence-selfies` bucket; max 5MB, JPEG/PNG/WEBP
+- `createAccessRequestAction` — insert new access request
+- TanStack Query `useMutation` wraps Server Actions on the client for loading/error state
+
+---
+
+## Data Models
+
+All tables live in the Supabase `presence` schema (accessed via `.schema('presence')`).
+
+### `employees`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `clerk_user_id` | text | Supabase auth user UUID |
+| `email` | text | Unique |
+| `full_name` | text \| null | |
+| `avatar_url` | text \| null | |
+| `is_active` | boolean | Default true; inactive blocks presence submission |
+| `role_id` | uuid | FK → roles.id |
+
+### `roles`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `code` | text | e.g. `ADMIN`, `EMPLOYEE` |
+| `name` | text | Display name |
+| `is_system` | boolean | |
+
+### `presences`
+| Column | Type | Notes |
+|---|---|---|
+| `employee_id` | uuid | FK → employees.id |
+| `presence_date` | date | |
+| `status` | enum | PRESENT \| WFH \| NOT_PRESENT \| GO_TO_CLIENT |
+| `selfie_url` | text \| null | Supabase Storage URL |
+| `note` | text \| null | Max 250 chars |
+| `updated_at` | timestamptz | |
+
+Unique constraint: `(employee_id, presence_date)` — upsert on conflict.
+
+### `access_requests`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `employee_id` | uuid | FK → employees.id |
+| `provider` | enum | GITHUB \| FIGMA |
+| `request_type` | enum | REPO_ACCESS \| NEW_REPO \| FIGMA_FILE \| FIGMA_PROJECT |
+| `target_url` | text | Required for REPO_ACCESS, FIGMA_FILE |
+| `display_name` | text | 2–120 chars |
+| `justification` | text | 5–500 chars |
+| `extra_info` | text \| null | Max 500 chars |
+| `status` | enum | PENDING \| APPROVED \| DENIED (default PENDING) |
+| `admin_note` | text \| null | Admin response |
+| `resolved_by` | text \| null | Admin user ID |
+| `resolved_at` | timestamptz \| null | |
+| `created_at` | timestamptz | |
+
+### Supabase Storage
+- **Bucket:** `presence-selfies`
+- **Path pattern:** `{userId}/{YYYY-MM-DD}/{uuid}.{ext}`
+- **Constraints:** JPEG/PNG/WEBP, max 5MB
+
+---
+
+## API Routes
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/auth/session` | POST | Exchange Supabase tokens → httpOnly cookies; validates domain + ADMIN role |
+| `/api/auth/sign-out` | POST | Clear `bh_employee_at` and `bh_employee_rt` cookies |
+| `/auth/callback` | GET | OAuth callback handler (Supabase redirect target) |
+
+No other REST endpoints — all mutations use Server Actions.
+
+---
+
+## Environment Variables
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+COMPANY_EMAIL_DOMAIN=
+```
+
+---
+
+## Module Status
+
+| Module | Route | Status |
+|---|---|---|
+| Authentication | `/sign-in`, `/auth/callback` | Implemented |
+| Presence Tracking | `/presence` | Implemented |
+| Account Request | `/account-request` | Implemented |
+| Module Directory | `/modules` | Implemented |
+| Dashboard | `/dashboard` | Redirect → /presence |
+| Leave Request | `/leave-request` | Planned (Coming Soon) |
+| Asset Request | `/asset-request` | Planned (Coming Soon) |
 
 ---
 
