@@ -2,26 +2,15 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserMenu } from '@/components/auth/user-menu';
+import { PageHeader } from '@/components/layout/page-header';
 import { requireEmployeeUser } from '@/lib/auth/server';
 
 export default async function ModulesPage() {
   const user = await requireEmployeeUser();
-  const displayName = user.fullName ?? user.email;
   return (
     <main className="min-h-screen bg-stone-100">
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Hello, {displayName}</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your daily operations from Bithealth Center.
-            </p>
-          </div>
-          <div className="shrink-0 pt-0.5">
-            <UserMenu fullName={user.fullName} email={user.email} />
-          </div>
-        </div>
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+        <PageHeader fullName={user.fullName} email={user.email} />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Link href="/presence" className="block">
