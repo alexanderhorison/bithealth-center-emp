@@ -1,9 +1,6 @@
-import { Grid3X3 } from 'lucide-react';
-import Link from 'next/link';
-
 import { AccountRequestForm } from '@/app/(employee)/account-request/_components/account-request-form';
 import { RequestHistory } from '@/app/(employee)/account-request/_components/request-history';
-import { UserMenu } from '@/components/auth/user-menu';
+import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { requireEmployeeUser } from '@/lib/auth/server';
 import { syncEmployee } from '@/lib/employee/sync';
@@ -61,27 +58,8 @@ export default async function AccountRequestPage({ searchParams }: PageProps) {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Hello, {employee.full_name ?? user.email}</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your daily operations from Bithealth Center.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/modules"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-zinc-700 transition hover:bg-zinc-300 hover:text-zinc-900"
-            aria-label="Open modules"
-          >
-            <Grid3X3 className="h-5 w-5" aria-hidden="true" />
-          </Link>
-          <div className="shrink-0 pt-0.5">
-            <UserMenu fullName={user.fullName} email={user.email} />
-          </div>
-        </div>
-      </div>
+    <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+      <PageHeader fullName={employee.full_name} email={user.email} />
 
       {error ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">

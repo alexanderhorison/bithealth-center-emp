@@ -1,10 +1,7 @@
-import { Grid3X3 } from 'lucide-react';
-import Link from 'next/link';
-
 import { PresenceForm } from '@/app/(employee)/presence/_components/presence-form';
 import { PresenceHistory } from '@/app/(employee)/presence/_components/presence-history';
 import { type HistoryPresenceRow } from '@/app/(employee)/presence/_shared';
-import { UserMenu } from '@/components/auth/user-menu';
+import { PageHeader } from '@/components/layout/page-header';
 import { type AuthenticatedEmployeeUser } from '@/lib/auth/shared';
 import { requireEmployeeUser } from '@/lib/auth/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,26 +74,7 @@ export default async function EmployeePresencePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold sm:text-2xl">Hello, {employee.full_name ?? user.email}</h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            Manage your daily operations from Bithealth Center.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/modules"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-zinc-700 transition hover:bg-zinc-300 hover:text-zinc-900"
-            aria-label="Open modules"
-          >
-            <Grid3X3 className="h-5 w-5" aria-hidden="true" />
-          </Link>
-          <div className="shrink-0 pt-0.5">
-            <UserMenu fullName={user.fullName} email={user.email} />
-          </div>
-        </div>
-      </div>
+      <PageHeader fullName={employee.full_name} email={user.email} />
 
       {/* GAP-PRES-04: History now lives in a client component that supports "Load more". */}
       <PresenceHistory initialEntries={historyEntries} />
