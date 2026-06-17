@@ -25,7 +25,7 @@ export default async function EditRolePage({ params }: PageProps) {
   const { data, error } = await supabase
     .schema('presence')
     .from('roles')
-    .select('id, code, name, description, is_system')
+    .select('id, code, name, description, is_system, app, role_permissions(route)')
     .eq('id', parsedId.data)
     .maybeSingle();
 
@@ -36,6 +36,8 @@ export default async function EditRolePage({ params }: PageProps) {
   if (!data) {
     notFound();
   }
+
+  const routes = (data.role_permissions ?? []).map((p: { route: string }) => p.route);
 
   return (
     <main className="space-y-6">
@@ -51,7 +53,9 @@ export default async function EditRolePage({ params }: PageProps) {
           id: data.id,
           code: data.code,
           name: data.name,
-          description: data.description ?? ''
+          description: data.description ?? '',
+          app: data.app as 'cms' | 'emp',
+          routes
         }}
       />
     </main>

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     avatarUrl: mapped.avatarUrl
   });
 
-  if (!employee.role || !isAuthorizedAdmin({ ...mapped, role: employee.role })) {
+  if (!isAuthorizedAdmin({ ...mapped, roles: employee.roles })) {
     return NextResponse.json({ message: 'Admin access is required' }, { status: 403 });
   }
 

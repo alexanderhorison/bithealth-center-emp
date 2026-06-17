@@ -95,7 +95,7 @@ export default async function EmployeeManagementPage({ searchParams }: PageProps
     throw new Error(error.message);
   }
 
-  const employees = (data ?? []) as EmployeeRow[];
+  const employees = (data ?? []) as unknown as EmployeeRow[];
   const totalCount = count ?? 0;
 
   return (

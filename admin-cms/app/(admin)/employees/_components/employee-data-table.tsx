@@ -19,7 +19,7 @@ type EmployeeRow = {
   auth_user_id: string | null;
   is_active: boolean;
   employee_roles: Array<{
-    roles: { id: string; code: string; name: string; app: string } | null;
+    roles: Array<{ id: string; code: string; name: string; app: string }> | { id: string; code: string; name: string; app: string } | null;
   }>;
   created_at: string;
 };
