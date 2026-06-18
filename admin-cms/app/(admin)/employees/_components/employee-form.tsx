@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 
 import { saveEmployeeAction } from '@/app/(admin)/employees/actions';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -96,7 +97,7 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
 
       </div>
 
-      {/* Role assignment grouped by app */}
+      {/* Role assignment */}
       <div className="grid gap-2">
         <Label>Roles</Label>
         {!hasRoles ? (
@@ -114,40 +115,61 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
               };
               const cmsRoles = roles.filter((r) => r.app === 'cms');
               const empRoles = roles.filter((r) => r.app === 'emp');
+
+              const RoleCard = ({ role }: { role: typeof roles[0] }) => {
+                const isSelected = selected.includes(role.id);
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => toggle(role.id)}
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-all',
+                      isSelected
+                        ? 'border-stone-800 bg-stone-50 ring-1 ring-stone-800'
+                        : 'border-border hover:border-stone-400 hover:bg-stone-50/50'
+                    )}
+                  >
+                    <div className="grid gap-0.5">
+                      <span className="text-sm font-medium">{role.name}</span>
+                      <span className="font-mono text-xs text-muted-foreground">{role.code}</span>
+                    </div>
+                    <div
+                      className={cn(
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                        isSelected ? 'border-stone-800 bg-stone-800' : 'border-stone-300'
+                      )}
+                    >
+                      {isSelected && (
+                        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                );
+              };
+
               return (
-                <div className="grid gap-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="grid gap-4">
                   {cmsRoles.length > 0 && (
-                    <div className="grid gap-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">CMS</p>
-                      {cmsRoles.map((role) => (
-                        <label key={role.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-stone-300"
-                            checked={selected.includes(role.id)}
-                            onChange={() => toggle(role.id)}
-                          />
-                          <span>{role.name}</span>
-                          <span className="text-xs text-muted-foreground">({role.code})</span>
-                        </label>
-                      ))}
+                    <div className="grid gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="cms">Admin CMS</Badge>
+                      </div>
+                      <div className="grid gap-2">
+                        {cmsRoles.map((role) => <RoleCard key={role.id} role={role} />)}
+                      </div>
                     </div>
                   )}
                   {empRoles.length > 0 && (
-                    <div className="grid gap-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee App</p>
-                      {empRoles.map((role) => (
-                        <label key={role.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-stone-300"
-                            checked={selected.includes(role.id)}
-                            onChange={() => toggle(role.id)}
-                          />
-                          <span>{role.name}</span>
-                          <span className="text-xs text-muted-foreground">({role.code})</span>
-                        </label>
-                      ))}
+                    <div className="grid gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="emp">Employee App</Badge>
+                      </div>
+                      <div className="grid gap-2">
+                        {empRoles.map((role) => <RoleCard key={role.id} role={role} />)}
+                      </div>
                     </div>
                   )}
                 </div>

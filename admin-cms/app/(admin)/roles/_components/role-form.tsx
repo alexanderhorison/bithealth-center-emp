@@ -47,10 +47,9 @@ const APP_OPTIONS = [
 type RoleFormProps = {
   mode: 'create' | 'edit';
   initialValues?: SaveRoleInput;
-  isSystem?: boolean;
 };
 
-export function RoleForm({ mode, initialValues, isSystem = false }: RoleFormProps) {
+export function RoleForm({ mode, initialValues }: RoleFormProps) {
   const router = useRouter();
   const form = useForm<SaveRoleInput>({
     resolver: zodResolver(saveRoleSchema),

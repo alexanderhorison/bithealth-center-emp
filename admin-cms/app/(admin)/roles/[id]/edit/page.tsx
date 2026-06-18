@@ -48,7 +48,6 @@ export default async function EditRolePage({ params }: PageProps) {
 
       <RoleForm
         mode="edit"
-        isSystem={data.is_system}
         initialValues={{
           id: data.id,
           code: data.code,
