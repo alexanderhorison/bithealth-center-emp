@@ -10,12 +10,13 @@ type AuthShellProps = {
   appLabel: string;
   title: string;
   subtitle: string;
+  defaultShowIntro?: boolean;
   children: ReactNode;
 };
 
-export function AuthShell({ appLabel, title, subtitle, children }: AuthShellProps) {
+export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, children }: AuthShellProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(defaultShowIntro);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 1023px)');

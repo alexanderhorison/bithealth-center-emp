@@ -36,6 +36,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       appLabel="Bithealth Center"
       title="Sign in to Bithealth Center"
       subtitle="Your company's command center for daily operations."
+      defaultShowIntro={errorMessage === null}
     >
       <div className="space-y-2">
         <GoogleSignInButton redirectPath="/modules" />

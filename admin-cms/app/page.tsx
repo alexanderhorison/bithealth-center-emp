@@ -41,6 +41,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       appLabel="Bithealth Center CMS"
       title="Sign in to CMS"
       subtitle="Manage employees and presence records from one admin workspace."
+      defaultShowIntro={errorMessage === null}
     >
       <div className="space-y-2">
         <GoogleSignInButton redirectPath="/dashboard" />
