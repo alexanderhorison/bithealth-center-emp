@@ -1,5 +1,3 @@
-import { cache } from 'react';
-
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 type SyncEmployeeInput = {
@@ -128,7 +126,7 @@ async function assignDefaultRole(employeeId: string): Promise<void> {
     .throwOnError();
 }
 
-export const syncEmployee = cache(async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmployee> {
+export async function syncEmployee(input: SyncEmployeeInput): Promise<SyncedEmployee> {
   const supabase = createSupabaseAdminClient();
 
   const byAuthUserResult = await supabase
@@ -200,7 +198,7 @@ export const syncEmployee = cache(async function syncEmployee(input: SyncEmploye
   }
 
   throw new Error(insertResult.error.message);
-});
+}
 
 // ---------------------------------------------------------------------------
 // Authorization helpers

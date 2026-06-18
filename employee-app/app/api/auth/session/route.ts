@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Account is inactive' }, { status: 403 });
   }
 
-  if (!isAllowedEmployeeEmail(user.email) && employee.role?.code !== 'ADMIN') {
+  if (!isAllowedEmployeeEmail(user.email) && !employee.roles.some((r) => r.app === 'emp')) {
     return NextResponse.json({ message: 'Email domain is not allowed' }, { status: 403 });
   }
 
