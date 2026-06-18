@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     id: employee.id,
     email: employee.email,
     fullName: employee.full_name,
-    avatarUrl: employee.avatar_url,
+    avatarUrl: user.avatarUrl,
     roles: employee.roles
   }), {
     ...cookieConfig.options,

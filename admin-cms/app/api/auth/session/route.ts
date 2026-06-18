@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     id: employee.id,
     email: employee.email,
     fullName: employee.full_name,
-    avatarUrl: employee.avatar_url,
+    avatarUrl: mapped.avatarUrl,
     roles: employee.roles
   }), {
     ...cookieConfig.options,
