@@ -31,6 +31,16 @@ export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<Acti
   const supabase = createSupabaseAdminClient();
   const values = parsed.data;
 
+  // Resolve admin's employee record for assigned_by
+  const { data: adminEmployee } = await supabase
+    .schema('presence')
+    .from('employees')
+    .select('id')
+    .eq('auth_user_id', admin.id)
+    .maybeSingle<{ id: string }>();
+
+  const assignedBy = adminEmployee?.id ?? null;
+
   if (values.id) {
     // Update employee profile
     const { error: updateError } = await supabase
@@ -66,7 +76,7 @@ export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<Acti
         values.roleIds.map((roleId) => ({
           employee_id: values.id!,
           role_id: roleId,
-          assigned_by: admin.id
+          assigned_by: assignedBy
         }))
       );
 
@@ -114,7 +124,7 @@ export async function saveEmployeeAction(input: SaveEmployeeInput): Promise<Acti
         values.roleIds.map((roleId) => ({
           employee_id: employeeId,
           role_id: roleId,
-          assigned_by: admin.id
+          assigned_by: assignedBy
         }))
       );
 
