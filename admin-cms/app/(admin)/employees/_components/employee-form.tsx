@@ -95,6 +95,45 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
           />
         </div>
 
+        <Controller
+          control={form.control}
+          name="isActive"
+          render={({ field }) => {
+            const isActive = Boolean(field.value);
+
+            return (
+              <div className="grid gap-2">
+                <Label htmlFor="isActive" className="text-sm font-medium">
+                  Active Employee
+                </Label>
+
+                <div className="flex items-center justify-between rounded-md border border-input bg-background px-3 h-10">
+                  <p className="text-xs text-muted-foreground">Enable presence submission</p>
+
+                  <button
+                    id="isActive"
+                    type="button"
+                    role="switch"
+                    aria-checked={isActive}
+                    aria-label="Employee active status"
+                    onClick={() => field.onChange(!isActive)}
+                    className={cn(
+                      'relative h-6 w-10 rounded-full border border-stone-300 transition-colors focus-visible:outline-none',
+                      isActive ? 'bg-stone-800' : 'bg-stone-300'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full bg-white shadow-sm transition-transform',
+                        isActive ? 'translate-x-4' : 'translate-x-0'
+                      )}
+                    />
+                  </button>
+                </div>
+              </div>
+            );
+          }}
+        />
       </div>
 
       {/* Role assignment */}
@@ -113,61 +152,47 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
                   selected.includes(id) ? selected.filter((r) => r !== id) : [...selected, id]
                 );
               };
-              const cmsRoles = roles.filter((r) => r.app === 'cms');
-              const empRoles = roles.filter((r) => r.app === 'emp');
-
-              const RoleCard = ({ role }: { role: typeof roles[0] }) => {
-                const isSelected = selected.includes(role.id);
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => toggle(role.id)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-all',
-                      isSelected
-                        ? 'border-stone-800 bg-stone-50 ring-1 ring-stone-800'
-                        : 'border-border hover:border-stone-400 hover:bg-stone-50/50'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                        isSelected ? 'border-stone-800 bg-stone-800' : 'border-stone-300'
-                      )}
-                    >
-                      {isSelected && (
-                        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="grid gap-0.5">
-                      <span className="text-sm font-medium">{role.name}</span>
-                      <span className="font-mono text-xs text-muted-foreground">{role.code}</span>
-                    </div>
-                  </button>
-                );
-              };
 
               return (
-                <div className="flex flex-wrap gap-3">
-                  {cmsRoles.length > 0 && (
-                    <div className="grid gap-2 flex-1 min-w-[160px]">
-                      <Badge variant="cms" className="w-fit">Admin CMS</Badge>
-                      <div className="flex flex-wrap gap-2">
-                        {cmsRoles.map((role) => <RoleCard key={role.id} role={role} />)}
-                      </div>
-                    </div>
-                  )}
-                  {empRoles.length > 0 && (
-                    <div className="grid gap-2 flex-1 min-w-[160px]">
-                      <Badge variant="emp" className="w-fit">Employee App</Badge>
-                      <div className="flex flex-wrap gap-2">
-                        {empRoles.map((role) => <RoleCard key={role.id} role={role} />)}
-                      </div>
-                    </div>
-                  )}
+                <div className="flex flex-wrap gap-3 mt-1">
+                  {roles.map((role) => {
+                    const isSelected = selected.includes(role.id);
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => toggle(role.id)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-all min-w-[200px]',
+                          isSelected
+                            ? 'border-stone-800 bg-stone-50 ring-1 ring-stone-800'
+                            : 'border-border hover:border-stone-400 hover:bg-stone-50/50'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                            isSelected ? 'border-stone-800 bg-stone-800' : 'border-stone-300'
+                          )}
+                        >
+                          {isSelected && (
+                            <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="grid gap-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{role.name}</span>
+                            <Badge variant={role.app === 'cms' ? 'cms' : 'emp'} className="text-[10px] px-1 py-0 font-normal">
+                              {role.app === 'cms' ? 'CMS' : 'Emp'}
+                            </Badge>
+                          </div>
+                          <span className="font-mono text-[10px] text-muted-foreground">{role.code}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               );
             }}
@@ -176,48 +201,6 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
         {form.formState.errors.roleIds ? (
           <p className="text-sm text-destructive">{form.formState.errors.roleIds.message}</p>
         ) : null}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Controller
-          control={form.control}
-          name="isActive"
-          render={({ field }) => {
-            const isActive = Boolean(field.value);
-
-            return (
-              <div className="grid gap-2">
-                <Label htmlFor="isActive" className="text-sm font-medium">
-                  Active Employee
-                </Label>
-
-                <div className="flex items-center justify-between rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Enable presence submission for this employee.</p>
-
-                  <button
-                    id="isActive"
-                    type="button"
-                    role="switch"
-                    aria-checked={isActive}
-                    aria-label="Employee active status"
-                    onClick={() => field.onChange(!isActive)}
-                    className={cn(
-                      'relative h-7 w-12 rounded-full border border-stone-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                      isActive ? 'bg-stone-800' : 'bg-stone-300'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
-                        isActive ? 'translate-x-5' : 'translate-x-0'
-                      )}
-                    />
-                  </button>
-                </div>
-              </div>
-            );
-          }}
-        />
       </div>
 
       {mutation.data?.message ? (

@@ -105,7 +105,7 @@ function mapRoleRow(raw: RoleWithPermissionsRow): EmployeeRole {
 }
 
 const employeeStatusSelect =
-  'is_active, employee_roles(roles(id, code, name, app, is_system, role_permissions(route)))';
+  'is_active, employee_roles!employee_roles_employee_id_fkey(roles(id, code, name, app, is_system, role_permissions(route)))';
 
 async function getEmployeeStatus(
   userId: string,
