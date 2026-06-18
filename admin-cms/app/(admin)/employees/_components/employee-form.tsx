@@ -124,16 +124,12 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
                     type="button"
                     onClick={() => toggle(role.id)}
                     className={cn(
-                      'flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-all',
+                      'flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-all',
                       isSelected
                         ? 'border-stone-800 bg-stone-50 ring-1 ring-stone-800'
                         : 'border-border hover:border-stone-400 hover:bg-stone-50/50'
                     )}
                   >
-                    <div className="grid gap-0.5">
-                      <span className="text-sm font-medium">{role.name}</span>
-                      <span className="font-mono text-xs text-muted-foreground">{role.code}</span>
-                    </div>
                     <div
                       className={cn(
                         'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
@@ -146,28 +142,28 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
                         </svg>
                       )}
                     </div>
+                    <div className="grid gap-0.5">
+                      <span className="text-sm font-medium">{role.name}</span>
+                      <span className="font-mono text-xs text-muted-foreground">{role.code}</span>
+                    </div>
                   </button>
                 );
               };
 
               return (
-                <div className="grid gap-4">
+                <div className="flex flex-wrap gap-3">
                   {cmsRoles.length > 0 && (
-                    <div className="grid gap-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="cms">Admin CMS</Badge>
-                      </div>
-                      <div className="grid gap-2">
+                    <div className="grid gap-2 flex-1 min-w-[160px]">
+                      <Badge variant="cms" className="w-fit">Admin CMS</Badge>
+                      <div className="flex flex-wrap gap-2">
                         {cmsRoles.map((role) => <RoleCard key={role.id} role={role} />)}
                       </div>
                     </div>
                   )}
                   {empRoles.length > 0 && (
-                    <div className="grid gap-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="emp">Employee App</Badge>
-                      </div>
-                      <div className="grid gap-2">
+                    <div className="grid gap-2 flex-1 min-w-[160px]">
+                      <Badge variant="emp" className="w-fit">Employee App</Badge>
+                      <div className="flex flex-wrap gap-2">
                         {empRoles.map((role) => <RoleCard key={role.id} role={role} />)}
                       </div>
                     </div>
