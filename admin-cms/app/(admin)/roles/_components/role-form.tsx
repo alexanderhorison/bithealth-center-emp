@@ -8,7 +8,6 @@ import { useMutation } from '@tanstack/react-query';
 import { Check, LayoutDashboard, Monitor } from 'lucide-react';
 
 import { saveRoleAction } from '@/app/(admin)/roles/actions';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -155,15 +154,7 @@ export function RoleForm({ mode, initialValues, isSystem = false }: RoleFormProp
           <CardDescription>Which application does this role apply to?</CardDescription>
         </CardHeader>
         <CardContent>
-          {isSystem ? (
-            <div className="flex items-center gap-2">
-              <Badge variant={selectedApp === 'cms' ? 'cms' : 'emp'}>
-                {selectedApp === 'cms' ? 'Admin CMS' : 'Employee App'}
-              </Badge>
-              <span className="text-xs text-muted-foreground">System roles cannot change app.</span>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
               {APP_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
                 const active = selectedApp === opt.value;
@@ -199,7 +190,6 @@ export function RoleForm({ mode, initialValues, isSystem = false }: RoleFormProp
                 );
               })}
             </div>
-          )}
           {form.formState.errors.app && (
             <p className="mt-2 text-xs text-destructive">{form.formState.errors.app.message}</p>
           )}
