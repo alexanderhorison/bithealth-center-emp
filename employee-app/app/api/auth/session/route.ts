@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseAuthClient();
+  console.time('session-auth-getUser');
   const { data, error } = await supabase.auth.getUser(payload.data.accessToken);
+  console.timeEnd('session-auth-getUser');
 
   if (error || !data.user) {
     return NextResponse.json({ message: 'Invalid access token' }, { status: 401 });
@@ -47,17 +49,21 @@ export async function POST(request: NextRequest) {
   }
 
   // Fast pre-check: if user exists in DB and has no employee roles, reject before expensive syncEmployee
+  console.time('session-precheck-roles');
   const existingRoles = await getEmployeeRolesByAuthUser(user.id);
+  console.timeEnd('session-precheck-roles');
   if (existingRoles !== null && !existingRoles.some((r) => r.app === 'emp')) {
     return NextResponse.json({ message: 'Unauthorized: No employee roles assigned' }, { status: 403 });
   }
 
+  console.time('session-syncEmployee');
   const employee = await syncEmployee({
     userId: user.id,
     primaryEmail: user.email,
     fullName: user.fullName,
     avatarUrl: user.avatarUrl
   });
+  console.timeEnd('session-syncEmployee');
 
   if (!employee.is_active) {
     return NextResponse.json({ message: 'Account is inactive' }, { status: 403 });
