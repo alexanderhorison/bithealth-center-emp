@@ -110,7 +110,7 @@ export function RequestHistory({ rows, page, pageSize, totalCount }: RequestHist
               {/* GAP-ACCT-02: Per-page toggle — navigates via URL so the selection is bookmarkable. */}
               <span className="text-xs text-muted-foreground">·</span>
               {([10, 20] as const).map((size) => (
-                <Link key={size} href={`/account-request?page=1&pageSize=${size}`}>
+                <Link key={size} href={`/account-request?page=1&pageSize=${size}`} prefetch={false}>
                   <button
                     type="button"
                     aria-label={`Show ${size} per page`}
@@ -127,12 +127,12 @@ export function RequestHistory({ rows, page, pageSize, totalCount }: RequestHist
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <Link href={`/account-request?page=${Math.max(1, page - 1)}&pageSize=${pageSize}`}>
+              <Link href={`/account-request?page=${Math.max(1, page - 1)}&pageSize=${pageSize}`} prefetch={false}>
                 <Button variant="outline" className="h-8 px-3" disabled={page === 1} aria-label="Previous page">
                   <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </Link>
-              <Link href={`/account-request?page=${Math.min(totalPages, page + 1)}&pageSize=${pageSize}`}>
+              <Link href={`/account-request?page=${Math.min(totalPages, page + 1)}&pageSize=${pageSize}`} prefetch={false}>
                 <Button variant="outline" className="h-8 px-3" disabled={page >= totalPages} aria-label="Next page">
                   <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </Button>

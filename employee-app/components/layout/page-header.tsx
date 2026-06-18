@@ -25,6 +25,7 @@ export function PageHeader({
       <div className="flex shrink-0 items-center gap-2">
         <Link
           href="/modules"
+          prefetch={false}
           className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-zinc-700 transition hover:bg-zinc-300 hover:text-zinc-900"
           aria-label="Open modules"
         >
