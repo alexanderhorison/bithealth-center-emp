@@ -162,17 +162,12 @@ async function resolveEmployeeUser(
   // Inactive employees are always denied
   if (!status.isActive) return null;
 
-  // Active + company email = allow
-  if (isAllowedEmployeeEmail(base.email)) {
-    return { ...base, roles: status.roles };
+  // Must have at least one EMP role to use the employee app
+  if (!hasAccessToEmp(status.roles)) {
+    return null;
   }
 
-  // Active + has any emp role = allow (non-domain override)
-  if (hasAccessToEmp(status.roles)) {
-    return { ...base, roles: status.roles };
-  }
-
-  return null;
+  return { ...base, roles: status.roles };
 }
 
 export async function getEmployeeUserFromAccessToken(token: string): Promise<AuthenticatedEmployeeUser | null> {

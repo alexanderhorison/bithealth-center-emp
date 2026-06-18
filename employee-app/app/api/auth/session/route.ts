@@ -61,6 +61,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Email domain is not allowed' }, { status: 403 });
   }
 
+  if (!employee.roles.some((r) => r.app === 'emp')) {
+    return NextResponse.json({ message: 'Unauthorized: No employee roles assigned' }, { status: 403 });
+  }
+
   const cookieConfig = getEmployeeAuthCookieConfig();
   const response = NextResponse.json({ success: true });
 
