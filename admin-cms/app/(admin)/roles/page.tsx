@@ -14,6 +14,7 @@ type RoleRow = {
   name: string;
   description: string | null;
   is_system: boolean;
+  app: string;
 };
 
 type EmployeeRoleCountRow = {
@@ -62,7 +63,7 @@ export default async function RoleManagementPage({ searchParams }: PageProps) {
   const rangeTo = rangeFrom + pageSize - 1;
 
   const supabase = createSupabaseAdminClient();
-  let roleQuery = supabase.schema('presence').from('roles').select('id, code, name, description, is_system', { count: 'exact' });
+  let roleQuery = supabase.schema('presence').from('roles').select('id, code, name, description, is_system, app', { count: 'exact' });
 
   const normalizedQuery = normalizeSearchQuery(query);
 

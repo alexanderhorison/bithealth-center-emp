@@ -8,6 +8,7 @@ import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
 
 import { DeleteRoleButton } from '@/app/(admin)/roles/_components/delete-role-button';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { RoleSortField, TableSortDirection } from '@/lib/validations/table-search-params';
@@ -18,6 +19,7 @@ type RoleRow = {
   name: string;
   description: string | null;
   is_system: boolean;
+  app: string;
   employee_count: number;
 };
 
@@ -91,6 +93,15 @@ export function RoleDataTable({ rows, page, pageSize, totalCount, sortBy, sortDi
         cell: ({ row }) => <span className="text-muted-foreground">{row.original.description ?? '-'}</span>
       },
       {
+        id: 'app',
+        header: 'App',
+        cell: ({ row }) => (
+          <Badge variant={row.original.app === 'cms' ? 'cms' : 'emp'}>
+            {row.original.app === 'cms' ? 'Admin CMS' : 'Employee App'}
+          </Badge>
+        )
+      },
+      {
         id: 'is_system',
         header: () => (
           <SortButton active={sortBy === 'is_system'} direction={sortDir} onClick={() => onSort('is_system')}>
@@ -98,9 +109,9 @@ export function RoleDataTable({ rows, page, pageSize, totalCount, sortBy, sortDi
           </SortButton>
         ),
         cell: ({ row }) => (
-          <span className="inline-flex rounded-full bg-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-700">
+          <Badge variant="outline">
             {row.original.is_system ? 'System' : 'Custom'}
-          </span>
+          </Badge>
         )
       },
       {
