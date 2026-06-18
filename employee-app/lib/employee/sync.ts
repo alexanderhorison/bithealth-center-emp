@@ -211,3 +211,35 @@ export function hasAccessToEmp(roles: EmployeeRole[]): boolean {
 export function hasRouteAccess(roles: EmployeeRole[], route: string): boolean {
   return roles.some((r) => r.app === 'emp' && r.routes.includes(route));
 }
+
+// ---------------------------------------------------------------------------
+// Lightweight role pre-check (read-only, no upsert)
+// Used to fast-reject unauthorized users before running expensive syncEmployee
+// ---------------------------------------------------------------------------
+
+type EmployeePreCheckRow = {
+  is_active: boolean;
+  employee_roles: EmployeeRoleRow[];
+};
+
+/**
+ * Returns the employee's current roles from DB without upserting.
+ * Returns null if the employee record does not exist yet (new user).
+ */
+export async function getEmployeeRolesByAuthUser(userId: string): Promise<EmployeeRole[] | null> {
+  const supabase = createSupabaseAdminClient();
+
+  const result = await supabase
+    .schema('presence')
+    .from('employees')
+    .select('is_active, employee_roles!employee_roles_employee_id_fkey(roles(id, code, name, app, is_system, role_permissions(route)))')
+    .eq('auth_user_id', userId)
+    .maybeSingle<EmployeePreCheckRow>();
+
+  if (result.error || !result.data) return null;
+
+  return (result.data.employee_roles ?? [])
+    .map((er) => normalizeRoleRow(er.roles))
+    .filter((r): r is RoleWithPermissionsRow => r !== null)
+    .map(mapRoleRow);
+}

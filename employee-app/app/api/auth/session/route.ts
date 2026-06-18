@@ -7,7 +7,7 @@ import {
   isAllowedEmployeeEmail,
   mapSupabaseUser
 } from '@/lib/auth/shared';
-import { syncEmployee } from '@/lib/employee/sync';
+import { syncEmployee, getEmployeeRolesByAuthUser } from '@/lib/employee/sync';
 
 const payloadSchema = z.object({
   accessToken: z.string().min(1),
@@ -44,6 +44,12 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ message: 'User profile is incomplete' }, { status: 401 });
+  }
+
+  // Fast pre-check: if user exists in DB and has no employee roles, reject before expensive syncEmployee
+  const existingRoles = await getEmployeeRolesByAuthUser(user.id);
+  if (existingRoles !== null && !existingRoles.some((r) => r.app === 'emp')) {
+    return NextResponse.json({ message: 'Unauthorized: No employee roles assigned' }, { status: 403 });
   }
 
   const employee = await syncEmployee({
