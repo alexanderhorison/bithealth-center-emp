@@ -2,18 +2,10 @@ import { PresenceForm } from '@/app/(employee)/presence/_components/presence-for
 import { PresenceHistory } from '@/app/(employee)/presence/_components/presence-history';
 import { type HistoryPresenceRow } from '@/app/(employee)/presence/_shared';
 import { PageHeader } from '@/components/layout/page-header';
-import { type AuthenticatedEmployeeUser } from '@/lib/auth/shared';
 import { requireEmployeeUser } from '@/lib/auth/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { syncEmployee } from '@/lib/employee/sync';
+import { getEmployee } from '@/lib/employee/sync';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-
-type EmployeeRow = {
-  id: string;
-  full_name: string | null;
-  email: string;
-  is_active: boolean;
-};
 
 type PresenceRow = {
   status: 'PRESENT' | 'WFH' | 'NOT_PRESENT' | 'GO_TO_CLIENT';
@@ -23,18 +15,24 @@ type PresenceRow = {
   updated_at: string;
 };
 
-async function getOrCreateEmployee(user: AuthenticatedEmployeeUser): Promise<EmployeeRow> {
-  return syncEmployee({
-    userId: user.id,
-    primaryEmail: user.email,
-    fullName: user.fullName,
-    avatarUrl: user.avatarUrl
-  });
-}
-
 export default async function EmployeePresencePage() {
   const user = await requireEmployeeUser();
-  const employee = await getOrCreateEmployee(user);
+  const employee = await getEmployee(user.id, user.email);
+
+  // Employee record not found — should not normally happen since session route
+  // runs syncEmployee on login, but guards against race conditions.
+  if (!employee) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Not Found</CardTitle>
+            <CardDescription>Your employee record could not be located. Please sign out and sign in again.</CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
 
   if (!employee.is_active) {
     return (

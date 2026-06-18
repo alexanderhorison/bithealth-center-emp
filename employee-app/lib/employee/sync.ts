@@ -83,6 +83,37 @@ function mapEmployeeRow(row: EmployeeWithRolesRow): SyncedEmployee {
   };
 }
 
+/**
+ * Read-only employee lookup — no upsert, no writes.
+ * Use this on every page that just needs the employee record (id, is_active).
+ * Reserve syncEmployee() exclusively for the login flow (/api/auth/session).
+ */
+export async function getEmployee(userId: string, email: string): Promise<SyncedEmployee | null> {
+  const supabase = createSupabaseAdminClient();
+
+  // Try by auth_user_id first (fastest — indexed)
+  const byId = await supabase
+    .schema('presence')
+    .from('employees')
+    .select(employeeSelectColumns)
+    .eq('auth_user_id', userId)
+    .maybeSingle<EmployeeWithRolesRow>();
+
+  if (byId.error) throw new Error(byId.error.message);
+  if (byId.data) return mapEmployeeRow(byId.data);
+
+  // Fallback to email (handles edge case where auth_user_id not yet linked)
+  const byEmail = await supabase
+    .schema('presence')
+    .from('employees')
+    .select(employeeSelectColumns)
+    .eq('email', email)
+    .maybeSingle<EmployeeWithRolesRow>();
+
+  if (byEmail.error) throw new Error(byEmail.error.message);
+  return byEmail.data ? mapEmployeeRow(byEmail.data) : null;
+}
+
 async function updateEmployeeById(id: string, input: SyncEmployeeInput): Promise<SyncedEmployee> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase

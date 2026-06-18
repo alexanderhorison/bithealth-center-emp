@@ -3,7 +3,7 @@ import { RequestHistory } from '@/app/(employee)/account-request/_components/req
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { requireEmployeeUser } from '@/lib/auth/server';
-import { syncEmployee } from '@/lib/employee/sync';
+import { getEmployee } from '@/lib/employee/sync';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import {
   accessRequestSearchParamsSchema,
@@ -21,12 +21,20 @@ function getSingle(value: string | string[] | undefined): string | undefined {
 
 export default async function AccountRequestPage({ searchParams }: PageProps) {
   const user = await requireEmployeeUser();
-  const employee = await syncEmployee({
-    userId: user.id,
-    primaryEmail: user.email,
-    fullName: user.fullName,
-    avatarUrl: user.avatarUrl
-  });
+  const employee = await getEmployee(user.id, user.email);
+
+  if (!employee) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Not Found</CardTitle>
+            <CardDescription>Your employee record could not be located. Please sign out and sign in again.</CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
 
   const parsed = accessRequestSearchParamsSchema.safeParse({
     page: getSingle(searchParams.page),
