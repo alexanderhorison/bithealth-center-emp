@@ -19,7 +19,7 @@ export default async function ModulesPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           {canPresence && (
-            <Link href="/presence" className="block">
+            <Link href="/presence" prefetch={false} className="block">
               <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
                 <CardHeader>
                   <CardTitle>Presence</CardTitle>
@@ -34,7 +34,7 @@ export default async function ModulesPage() {
           )}
 
           {canAccountRequest && (
-            <Link href="/account-request" className="block">
+            <Link href="/account-request" prefetch={false} className="block">
               <Card className="h-full border-stone-300 bg-stone-50 transition hover:border-stone-400">
                 <CardHeader>
                   <CardTitle>Account Request</CardTitle>
