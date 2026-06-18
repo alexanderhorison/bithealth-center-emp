@@ -39,31 +39,25 @@ export async function saveRoleAction(input: SaveRoleInput): Promise<ActionResult
     if (existingRoleError) return { success: false, message: existingRoleError.message };
     if (!existingRole) return { success: false, message: 'Role not found' };
 
-    // System roles: cannot change code or app
-    const corePayload = existingRole.is_system
-      ? { name: values.name, description: values.description || null }
-      : { code: values.code, name: values.name, description: values.description || null, app: values.app };
-
+    // Update all fields — no restrictions on system roles
     const { error: updateError } = await supabase
       .schema('presence')
       .from('roles')
-      .update(corePayload)
+      .update({ code: values.code, name: values.name, description: values.description || null, app: values.app })
       .eq('id', values.id);
 
     if (updateError) return { success: false, message: updateError.message };
 
-    // Sync permissions (skip for system roles — they're managed via migrations)
-    if (!existingRole.is_system) {
-      await supabase.schema('presence').from('role_permissions').delete().eq('role_id', values.id);
+    // Sync permissions
+    await supabase.schema('presence').from('role_permissions').delete().eq('role_id', values.id);
 
-      if (values.routes.length > 0) {
-        const { error: permError } = await supabase
-          .schema('presence')
-          .from('role_permissions')
-          .insert(values.routes.map((route) => ({ role_id: values.id!, route })));
+    if (values.routes.length > 0) {
+      const { error: permError } = await supabase
+        .schema('presence')
+        .from('role_permissions')
+        .insert(values.routes.map((route) => ({ role_id: values.id!, route })));
 
-        if (permError) return { success: false, message: permError.message };
-      }
+      if (permError) return { success: false, message: permError.message };
     }
   } else {
     // Insert new role

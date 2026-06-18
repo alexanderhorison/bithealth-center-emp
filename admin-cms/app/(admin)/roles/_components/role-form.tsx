@@ -119,7 +119,6 @@ export function RoleForm({ mode, initialValues, isSystem = false }: RoleFormProp
               <Input
                 id="code"
                 placeholder="MANAGER"
-                disabled={isSystem}
                 {...form.register('code')}
               />
               {form.formState.errors.code && (
