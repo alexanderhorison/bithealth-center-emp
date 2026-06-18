@@ -72,6 +72,7 @@ export function RoleForm({ mode, initialValues }: RoleFormProps) {
   const mutation = useMutation({
     mutationFn: (payload: SaveRoleInput) => saveRoleAction(payload),
     onSuccess: (result) => {
+      alert(result.message);
       if (result.success) {
         router.push('/roles');
         router.refresh();
@@ -245,11 +246,6 @@ export function RoleForm({ mode, initialValues }: RoleFormProps) {
           </div>
         )}
       </Card>
-
-      {/* Error */}
-      {mutation.data && !mutation.data.success && (
-        <p className="text-sm text-destructive">{mutation.data.message}</p>
-      )}
 
       <Separator />
 

@@ -6,7 +6,7 @@ import { useMemo, type ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { Camera, CircleOff, CircleCheckBig, CheckCircle2, AlertCircle, House, Building2 } from 'lucide-react';
+import { Camera, CircleOff, CircleCheckBig, House, Building2 } from 'lucide-react';
 
 import { submitPresenceAction, uploadSelfieAction } from '@/app/(employee)/presence/actions';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,7 @@ export function PresenceForm({
   const mutation = useMutation({
     mutationFn: (input: SubmitPresenceInput) => submitPresenceAction(input),
     onSuccess: (result) => {
+      alert(result.message);
       if (result.success) {
         router.refresh();
       }
@@ -226,29 +227,6 @@ export function PresenceForm({
           {...form.register('note')}
         />
       </div>
-
-      {mutation.data?.message ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`rounded-lg border px-4 py-3 text-sm ${mutation.data.success
-              ? 'border-green-300 bg-green-50 text-green-900'
-              : 'border-red-300 bg-red-50 text-red-900'
-            }`}
-        >
-          <div className="flex items-start gap-2">
-            {mutation.data.success ? (
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            ) : (
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            )}
-            <div>
-              <p className="font-semibold">{mutation.data.success ? 'Success' : 'Failed to save'}</p>
-              <p>{mutation.data.message}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {/* GAP-PRES-03: Warn the employee before overwriting an existing submission. */}
       {hasExistingSubmission && !mutation.data ? (

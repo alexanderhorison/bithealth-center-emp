@@ -43,6 +43,7 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
   const mutation = useMutation({
     mutationFn: (input: SaveEmployeeInput) => saveEmployeeAction(input),
     onSuccess: (result) => {
+      alert(result.message);
       if (result.success) {
         router.push('/employees');
         router.refresh();
@@ -202,12 +203,6 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
           <p className="text-sm text-destructive">{form.formState.errors.roleIds.message}</p>
         ) : null}
       </div>
-
-      {mutation.data?.message ? (
-        <p className={`text-sm ${mutation.data.success ? 'text-green-700' : 'text-destructive'}`}>
-          {mutation.data.message}
-        </p>
-      ) : null}
 
       <div className="flex items-center justify-end gap-2">
         <Link href="/employees" prefetch={false}>

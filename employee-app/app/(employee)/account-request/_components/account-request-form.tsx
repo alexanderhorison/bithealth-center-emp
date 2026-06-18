@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { CheckCircle2, ChevronDown, Figma, Github, Info } from 'lucide-react';
+import { ChevronDown, Figma, Github } from 'lucide-react';
 
 import { createAccessRequestAction } from '@/app/(employee)/account-request/actions';
 import { Button } from '@/components/ui/button';
@@ -77,6 +77,7 @@ export function AccountRequestForm({ defaults }: AccountRequestFormProps) {
   const mutation = useMutation({
     mutationFn: (input: CreateAccessRequestInput) => createAccessRequestAction(input),
     onSuccess: (result) => {
+      alert(result.message);
       if (result.success) {
         form.reset({
           provider: 'GITHUB',
@@ -211,20 +212,6 @@ export function AccountRequestForm({ defaults }: AccountRequestFormProps) {
           />
         </div>
       </div>
-
-      {mutation.data?.message ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${mutation.data.success
-            ? 'border-green-300 bg-green-50 text-green-900'
-            : 'border-red-300 bg-red-50 text-red-900'
-            }`}
-        >
-          {mutation.data.success ? <CheckCircle2 className="h-4 w-4" /> : <Info className="h-4 w-4" />}
-          {mutation.data.message}
-        </div>
-      ) : null}
 
       <Button
         type="submit"
