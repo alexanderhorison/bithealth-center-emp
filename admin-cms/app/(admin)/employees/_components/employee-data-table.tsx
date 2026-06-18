@@ -148,7 +148,7 @@ export function EmployeeDataTable({ rows, page, pageSize, totalCount, sortBy, so
         header: 'Action',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Link href={`/employees/${row.original.id}/edit`}>
+            <Link href={`/employees/${row.original.id}/edit`} prefetch={false}>
               <Button variant="outline" className="h-8 px-3" aria-label="Edit employee">
                 Edit
               </Button>

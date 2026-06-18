@@ -150,7 +150,7 @@ export function AccessRequestDataTable({
         header: 'Action',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Link href={`/access-requests/${row.original.id}`}>
+            <Link href={`/access-requests/${row.original.id}`} prefetch={false}>
               <Button variant="outline" className="h-8 px-3">
                 Detail
               </Button>

@@ -121,7 +121,7 @@ export default async function RoleManagementPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold">Role Management</h1>
           <p className="text-sm text-muted-foreground">Manage role master data and attach role to employees.</p>
         </div>
-        <Link href="/roles/new">
+        <Link href="/roles/new" prefetch={false}>
           <Button aria-label="Create role">Add Role</Button>
         </Link>
       </div>

@@ -131,6 +131,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     className={cn(
                       'flex h-10 items-center rounded-lg border border-transparent text-sm font-medium text-stone-700 transition',
                       isActive

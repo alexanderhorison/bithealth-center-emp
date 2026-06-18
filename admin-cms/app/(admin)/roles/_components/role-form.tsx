@@ -255,7 +255,7 @@ export function RoleForm({ mode, initialValues }: RoleFormProps) {
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-2">
-        <Link href="/roles">
+        <Link href="/roles" prefetch={false}>
           <Button type="button" variant="outline">Cancel</Button>
         </Link>
         <Button type="submit" disabled={mutation.isPending}>

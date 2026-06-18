@@ -29,6 +29,7 @@ export default async function AccessRequestDetailPage({ params }: PageProps) {
       <div className="space-y-2">
         <Link
           href="/access-requests"
+          prefetch={false}
           className="inline-flex items-center gap-2 text-sm text-zinc-600 transition hover:text-zinc-900"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -43,7 +44,7 @@ export default async function AccessRequestDetailPage({ params }: PageProps) {
       <AccessRequestDetailCard request={request} />
 
       <div className="flex items-center justify-between gap-3">
-        <Link href="/access-requests">
+        <Link href="/access-requests" prefetch={false}>
           <Button variant="outline" className="h-10 px-6">
             Back
           </Button>

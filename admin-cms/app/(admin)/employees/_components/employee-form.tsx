@@ -210,7 +210,7 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
       ) : null}
 
       <div className="flex items-center justify-end gap-2">
-        <Link href="/employees">
+        <Link href="/employees" prefetch={false}>
           <Button type="button" variant="outline" aria-label="Cancel employee form">
             Cancel
           </Button>
