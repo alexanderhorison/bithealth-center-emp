@@ -56,6 +56,16 @@ export async function POST(request: Request) {
     ...cookieConfig.options,
     maxAge: cookieConfig.refreshToken.maxAge
   });
+  response.cookies.set('bh_admin_user', JSON.stringify({
+    id: employee.id,
+    email: employee.email,
+    fullName: employee.full_name,
+    avatarUrl: employee.avatar_url,
+    roles: employee.roles
+  }), {
+    ...cookieConfig.options,
+    maxAge: cookieConfig.accessToken.maxAge
+  });
 
   return response;
 }

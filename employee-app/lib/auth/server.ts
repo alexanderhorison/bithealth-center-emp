@@ -14,6 +14,14 @@ import {
 // the user has been redirected to /. No refresh fallback is needed here.
 export async function getCurrentEmployeeUser(): Promise<AuthenticatedEmployeeUser | null> {
   const cookieStore = cookies();
+  const userCookie = cookieStore.get('bh_employee_user')?.value;
+
+  if (userCookie) {
+    try {
+      return JSON.parse(userCookie) as AuthenticatedEmployeeUser;
+    } catch {}
+  }
+
   const accessToken = cookieStore.get(employeeAccessTokenCookieName)?.value;
 
   if (!accessToken) {

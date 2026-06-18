@@ -5,7 +5,8 @@ import {
   employeeRefreshTokenCookieName,
   getEmployeeAuthCookieConfig,
   getEmployeeUserFromAccessToken,
-  refreshEmployeeSession
+  refreshEmployeeSession,
+  type AuthenticatedEmployeeUser
 } from '@/lib/auth/shared';
 import { hasRouteAccess } from '@/lib/employee/sync';
 
@@ -14,6 +15,8 @@ const ROUTE_MAP: Array<{ prefix: string; key: string }> = [
   { prefix: '/presence', key: 'presence' },
   { prefix: '/account-request', key: 'account-request' }
 ];
+
+const USER_COOKIE = 'bh_employee_user';
 
 function getRouteKey(pathname: string): string | null {
   const match = ROUTE_MAP.find((r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`));
@@ -42,9 +45,18 @@ function clearAuthCookies(response: NextResponse) {
     ...cookieConfig.options,
     maxAge: 0
   });
+  response.cookies.set(USER_COOKIE, '', {
+    ...cookieConfig.options,
+    maxAge: 0
+  });
 }
 
-function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+function setAuthCookies(
+  response: NextResponse,
+  accessToken: string,
+  refreshToken: string,
+  user: AuthenticatedEmployeeUser | null = null
+) {
   const cookieConfig = getEmployeeAuthCookieConfig();
 
   response.cookies.set(cookieConfig.accessToken.name, accessToken, {
@@ -56,6 +68,13 @@ function setAuthCookies(response: NextResponse, accessToken: string, refreshToke
     response.cookies.set(cookieConfig.refreshToken.name, refreshToken, {
       ...cookieConfig.options,
       maxAge: cookieConfig.refreshToken.maxAge
+    });
+  }
+
+  if (user) {
+    response.cookies.set(USER_COOKIE, JSON.stringify(user), {
+      ...cookieConfig.options,
+      maxAge: cookieConfig.accessToken.maxAge
     });
   }
 }
@@ -80,9 +99,22 @@ export default async function middleware(request: NextRequest) {
     return createRedirectResponse(request, '/');
   }
 
-  let user = await getEmployeeUserFromAccessToken(accessToken);
+  // Try fast path: parse user from cached cookie (no DB/Supabase call)
+  const userCookieValue = request.cookies.get(USER_COOKIE)?.value;
+  let user: AuthenticatedEmployeeUser | null = null;
+  if (userCookieValue) {
+    try {
+      user = JSON.parse(userCookieValue) as AuthenticatedEmployeeUser;
+    } catch {}
+  }
+
   let activeAccessToken = accessToken;
   let activeRefreshToken = refreshToken ?? '';
+
+  // Fallback: resolve user from Supabase (first login or cookie missing)
+  if (!user) {
+    user = await getEmployeeUserFromAccessToken(accessToken);
+  }
 
   if (!user && refreshToken) {
     const refreshed = await refreshEmployeeSession(refreshToken);
@@ -108,7 +140,7 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname === '/') {
     const response = createRedirectResponse(request, '/modules');
-    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
     return response;
   }
 
@@ -116,12 +148,12 @@ export default async function middleware(request: NextRequest) {
   const routeKey = getRouteKey(pathname);
   if (routeKey && !hasRouteAccess(user.roles, routeKey)) {
     const response = createRedirectResponse(request, '/not-authorized');
-    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
     return response;
   }
 
   const response = NextResponse.next();
-  setAuthCookies(response, activeAccessToken, activeRefreshToken);
+  setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
   return response;
 }
 

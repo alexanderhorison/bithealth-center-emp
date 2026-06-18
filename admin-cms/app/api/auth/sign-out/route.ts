@@ -14,6 +14,10 @@ export async function POST() {
     ...cookieConfig.options,
     maxAge: 0
   });
+  response.cookies.set('bh_admin_user', '', {
+    ...cookieConfig.options,
+    maxAge: 0
+  });
 
   return response;
 }

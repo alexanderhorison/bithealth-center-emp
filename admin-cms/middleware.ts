@@ -3,10 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import {
   adminAccessTokenCookieName,
   adminRefreshTokenCookieName,
+  adminUserCookieName,
   getAdminAuthCookieConfig,
   getAdminUserFromAccessToken,
   isAuthorizedAdmin,
-  refreshAdminSession
+  refreshAdminSession,
+  type AuthenticatedAdminUser
 } from '@/lib/auth/shared';
 import { hasRouteAccess } from '@/lib/employee/sync';
 
@@ -46,9 +48,13 @@ function clearAuthCookies(response: NextResponse) {
     ...cookieConfig.options,
     maxAge: 0
   });
+  response.cookies.set(adminUserCookieName, '', {
+    ...cookieConfig.options,
+    maxAge: 0
+  });
 }
 
-function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string) {
+function setAuthCookies(response: NextResponse, accessToken: string, refreshToken: string, user: AuthenticatedAdminUser) {
   const cookieConfig = getAdminAuthCookieConfig();
 
   response.cookies.set(cookieConfig.accessToken.name, accessToken, {
@@ -62,6 +68,13 @@ function setAuthCookies(response: NextResponse, accessToken: string, refreshToke
       maxAge: cookieConfig.refreshToken.maxAge
     });
   }
+
+  // Cache the resolved user so Server Components skip an extra DB round-trip.
+  // Tied to the access-token lifetime (1 h) so stale role data cannot outlive the session.
+  response.cookies.set(adminUserCookieName, JSON.stringify(user), {
+    ...cookieConfig.options,
+    maxAge: cookieConfig.accessToken.maxAge
+  });
 }
 
 export default async function middleware(request: NextRequest) {
@@ -113,18 +126,18 @@ export default async function middleware(request: NextRequest) {
   if (!isAuthorizedAdmin(user)) {
     if (pathname === '/not-authorized') {
       const response = NextResponse.next();
-      setAuthCookies(response, activeAccessToken, activeRefreshToken);
+      setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
       return response;
     }
 
     const response = createRedirectResponse(request, '/not-authorized');
-    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
     return response;
   }
 
   if (pathname === '/' || pathname === '/not-authorized') {
     const response = createRedirectResponse(request, '/dashboard');
-    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
     return response;
   }
 
@@ -132,12 +145,12 @@ export default async function middleware(request: NextRequest) {
   const routeKey = getRouteKey(pathname);
   if (routeKey && !hasRouteAccess(user.roles, 'cms', routeKey)) {
     const response = createRedirectResponse(request, '/not-authorized');
-    setAuthCookies(response, activeAccessToken, activeRefreshToken);
+    setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
     return response;
   }
 
   const response = NextResponse.next();
-  setAuthCookies(response, activeAccessToken, activeRefreshToken);
+  setAuthCookies(response, activeAccessToken, activeRefreshToken, user);
   return response;
 }
 

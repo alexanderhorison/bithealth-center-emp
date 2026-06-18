@@ -5,6 +5,7 @@ import { findEmployeeRolesByUser, hasAccessToCMS, type EmployeeRole } from '@/li
 
 export const adminAccessTokenCookieName = 'bh_admin_at';
 export const adminRefreshTokenCookieName = 'bh_admin_rt';
+export const adminUserCookieName = 'bh_admin_user';
 
 const accessTokenMaxAge = 60 * 60;
 const refreshTokenMaxAge = 60 * 60 * 24 * 30;

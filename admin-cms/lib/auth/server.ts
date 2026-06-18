@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import {
   adminAccessTokenCookieName,
   adminRefreshTokenCookieName,
+  adminUserCookieName,
   getAdminUserFromAccessToken,
   refreshAdminSession,
   type AuthenticatedAdminUser
@@ -13,6 +14,14 @@ import {
 
 export async function getCurrentAdminUser(): Promise<AuthenticatedAdminUser | null> {
   const cookieStore = cookies();
+  const userCookie = cookieStore.get(adminUserCookieName)?.value;
+
+  if (userCookie) {
+    try {
+      return JSON.parse(userCookie) as AuthenticatedAdminUser;
+    } catch {}
+  }
+
   const accessToken = cookieStore.get(adminAccessTokenCookieName)?.value;
 
   if (!accessToken) {
