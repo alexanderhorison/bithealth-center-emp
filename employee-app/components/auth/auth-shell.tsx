@@ -8,14 +8,13 @@ import { Logo } from '@/components/layout/logo';
 import { cn } from '@/lib/utils';
 
 type AuthShellProps = {
-  appLabel: string;
   title: string;
   subtitle: string;
   defaultShowIntro?: boolean;
   children: ReactNode;
 };
 
-export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, children }: AuthShellProps) {
+export function AuthShell({ title, subtitle, defaultShowIntro = true, children }: AuthShellProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [showIntro, setShowIntro] = useState(defaultShowIntro);
 

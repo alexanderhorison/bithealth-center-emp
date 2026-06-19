@@ -33,7 +33,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <AuthShell
-      appLabel="Bithealth Center"
       title="Sign in to Bithealth Center"
       subtitle="Your company's command center for daily operations."
       defaultShowIntro={errorMessage === null}
