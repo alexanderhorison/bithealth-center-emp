@@ -2,26 +2,247 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   BitHealth Design Tokens — Color Scales
+   Brand orange (#F34B1F) + Navy (#122A67) dual-brand system.
+   Base scales first, semantic aliases at the bottom.
+   ============================================================ */
+
 :root {
-  --background: 36 22% 96%;
-  --foreground: 24 10% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 24 10% 12%;
-  --primary: 24 10% 18%;
-  --primary-foreground: 0 0% 98%;
-  --muted: 30 12% 92%;
-  --muted-foreground: 24 6% 38%;
-  --border: 30 10% 82%;
-  --input: 30 10% 82%;
-  --ring: 24 10% 18%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  /* ---- Brand / Primary (BitHealth orange) ---- */
+  --brand-25:  #FFF7F4;
+  --brand-50:  #FEEFE9;
+  --brand-100: #FCD8CC;
+  --brand-200: #F9BBA6;
+  --brand-300: #F59478;
+  --brand-400: #F46E49;
+  --brand-500: #F34B1F;  /* the brand orange — primary actions */
+  --brand-600: #DA3D14;  /* hover */
+  --brand-700: #B33110;  /* press */
+  --brand-800: #8E2810;
+  --brand-900: #742312;
+  --brand-950: #3F0E05;
+
+  /* ---- Navy (BitHealth deep blue — secondary brand / ink) ---- */
+  --navy-25:  #F5F7FC;
+  --navy-50:  #ECEFF8;
+  --navy-100: #CFD7ED;
+  --navy-200: #A6B5DD;
+  --navy-300: #7589C5;
+  --navy-400: #4760A0;
+  --navy-500: #243F80;
+  --navy-600: #122A67;  /* the brand navy */
+  --navy-700: #0E2154;
+  --navy-800: #0C1C45;
+  --navy-900: #0A1838;
+  --navy-950: #050E22;
+
+  /* ---- Gray / Neutral ---- */
+  --gray-25:  #FCFCFD;
+  --gray-50:  #F9FAFB;
+  --gray-100: #F2F4F7;
+  --gray-200: #EAECF0;
+  --gray-300: #D0D5DD;
+  --gray-400: #98A2B3;
+  --gray-500: #667085;
+  --gray-600: #475467;
+  --gray-700: #344054;
+  --gray-800: #1D2939;
+  --gray-900: #101828;
+  --gray-950: #0C111D;
+  --white:    #FFFFFF;
+
+  /* ---- Success / Green ---- */
+  --success-25:  #F6FEF9;
+  --success-50:  #ECFDF3;
+  --success-100: #DCFAE6;
+  --success-300: #6CE9A6;
+  --success-500: #12B76A;
+  --success-600: #039855;
+  --success-700: #027A48;
+
+  /* ---- Warning / Amber ---- */
+  --warning-25:  #FFFCF5;
+  --warning-50:  #FFFAEB;
+  --warning-100: #FEF0C7;
+  --warning-300: #FEC84B;
+  --warning-500: #F79009;
+  --warning-600: #DC6803;
+  --warning-700: #B54708;
+
+  /* ---- Error / Red ---- */
+  --error-25:  #FFFBFA;
+  --error-50:  #FEF3F2;
+  --error-100: #FEE4E2;
+  --error-300: #FDA29B;
+  --error-500: #F04438;
+  --error-600: #D92D20;
+  --error-700: #B42318;
+
+  /* ============================================================
+     Semantic aliases — reference these in product code.
+     ============================================================ */
+
+  /* Text */
+  --text-primary:      var(--navy-900);
+  --text-secondary:    var(--gray-700);
+  --text-tertiary:     var(--gray-500);
+  --text-placeholder:  var(--gray-400);
+  --text-disabled:     var(--gray-400);
+  --text-on-brand:     var(--white);
+  --text-brand:        var(--brand-700);
+  --text-navy:         var(--navy-600);
+  --text-error:        var(--error-600);
+  --text-success:      var(--success-700);
+
+  /* Surfaces / backgrounds */
+  --surface-page:       var(--white);
+  --surface-subtle:     var(--gray-50);
+  --surface-muted:      var(--gray-100);
+  --surface-card:       var(--white);
+  --surface-brand:      var(--brand-500);
+  --surface-brand-soft: var(--brand-50);
+  --surface-navy:       var(--navy-600);
+  --surface-inverse:    var(--navy-900);
+
+  /* Borders */
+  --border-subtle:  var(--gray-200);
+  --border-default: var(--gray-300);
+  --border-strong:  var(--gray-400);
+  --border-brand:   var(--brand-500);
+  --border-error:   var(--error-500);
+
+  /* Interactive (buttons, links) */
+  --action-primary:         var(--brand-500);
+  --action-primary-hover:   var(--brand-600);
+  --action-primary-press:   var(--brand-700);
+  --action-secondary:       var(--white);
+  --action-secondary-hover: var(--gray-50);
+  --link:                   var(--brand-700);
+  --focus-ring:             var(--brand-400);
+
+  /* ============================================================
+     Spacing (4px base grid)
+     ============================================================ */
+  --space-0:   0;
+  --space-0-5: 0.125rem; /* 2px  */
+  --space-1:   0.25rem;  /* 4px  */
+  --space-1-5: 0.375rem; /* 6px  */
+  --space-2:   0.5rem;   /* 8px  */
+  --space-3:   0.75rem;  /* 12px */
+  --space-4:   1rem;     /* 16px */
+  --space-5:   1.25rem;  /* 20px */
+  --space-6:   1.5rem;   /* 24px */
+  --space-8:   2rem;     /* 32px */
+  --space-10:  2.5rem;   /* 40px */
+  --space-12:  3rem;     /* 48px */
+  --space-16:  4rem;     /* 64px */
+  --space-20:  5rem;     /* 80px */
+  --space-24:  6rem;     /* 96px */
+  --space-32:  8rem;     /* 128px */
+  --space-40:  10rem;    /* 160px */
+
+  /* ============================================================
+     Border radius
+     ============================================================ */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   10px;
+  --radius-xl:   12px;
+  --radius-2xl:  16px;
+  --radius-3xl:  20px;
+  --radius-4xl:  24px;
+  --radius-full: 9999px;
+
+  /* ============================================================
+     Elevation / shadows (cool, low-contrast)
+     ============================================================ */
+  --shadow-xs:  0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm:  0 1px 3px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md:  0 4px 8px -2px rgba(16, 24, 40, 0.10), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg:  0 12px 16px -4px rgba(16, 24, 40, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-xl:  0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-2xl: 0 24px 48px -12px rgba(16, 24, 40, 0.18);
+
+  /* ============================================================
+     Typography
+     ============================================================ */
+  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: var(--font-sans);
+
+  /* Display scale */
+  --display-2xl: 4.5rem;
+  --display-xl:  3.75rem;
+  --display-lg:  3rem;
+  --display-md:  2.25rem;
+  --display-sm:  1.875rem;
+  --display-xs:  1.5rem;
+
+  /* Text scale */
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+
+  /* Line heights */
+  --lh-display-2xl: 5.625rem;
+  --lh-display-xl:  4.5rem;
+  --lh-display-lg:  3.75rem;
+  --lh-display-md:  2.75rem;
+  --lh-display-sm:  2.375rem;
+  --lh-display-xs:  2rem;
+  --lh-text-xl: 1.875rem;
+  --lh-text-lg: 1.75rem;
+  --lh-text-md: 1.5rem;
+  --lh-text-sm: 1.25rem;
+  --lh-text-xs: 1.125rem;
+
+  /* Letter spacing */
+  --tracking-display: -0.02em;
+  --tracking-tight:   -0.01em;
+  --tracking-normal:  0em;
+
+  /* ============================================================
+     Shadcn compatibility bridge
+     Remaps shadcn's required vars to BitHealth tokens so all
+     existing shadcn components automatically adopt the brand.
+     ============================================================ */
+  --background:             var(--surface-page);
+  --foreground:             var(--text-primary);
+  --card:                   var(--surface-card);
+  --card-foreground:        var(--text-primary);
+  --primary:                var(--action-primary);
+  --primary-foreground:     var(--white);
+  --muted:                  var(--surface-muted);
+  --muted-foreground:       var(--text-secondary);
+  --border:                 var(--border-default);
+  --input:                  var(--border-default);
+  --ring:                   var(--focus-ring);
+  --destructive:            var(--error-500);
+  --destructive-foreground: var(--white);
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
 }
 
 body {
+  margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, hsl(36 35% 92%), transparent 45%),
-    linear-gradient(180deg, hsl(40 18% 95%), hsl(var(--background)));
-  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
 }
