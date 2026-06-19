@@ -4,6 +4,7 @@ import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { Logo } from '@/components/layout/logo';
 
 function sanitizeNextPath(path: string | null, fallbackPath: string): string {
   if (!path || !path.startsWith('/')) {
@@ -86,7 +87,7 @@ function AuthCallbackContent() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-stone-100 px-6">
-      <p className="text-sm text-stone-600">Signing you in...</p>
+      <Logo className="h-10 w-auto animate-pulse" />
     </main>
   );
 }
@@ -96,7 +97,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center bg-stone-100 px-6">
-          <p className="text-sm text-stone-600">Signing you in...</p>
+          <Logo className="h-10 w-auto animate-pulse" />
         </main>
       }
     >

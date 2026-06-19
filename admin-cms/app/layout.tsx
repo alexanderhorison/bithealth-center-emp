@@ -19,7 +19,11 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: 'Presence Admin CMS',
-  description: 'Admin CMS for employee presence management'
+  description: 'Admin CMS for employee presence management',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/apple-icon.png'
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
