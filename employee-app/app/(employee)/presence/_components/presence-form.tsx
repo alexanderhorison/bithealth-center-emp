@@ -142,8 +142,11 @@ export function PresenceForm({
             <button
               key={option.value}
               type="button"
-              className={`rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4 ${isActive ? 'border-primary bg-primary/10' : 'border-border bg-background'
-                }`}
+              className={`rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4 ${
+                isActive
+                  ? 'border-brand-500 bg-brand-50 text-brand-700 font-medium'
+                  : 'border-border bg-background hover:border-brand-200 hover:bg-brand-25'
+              }`}
               onClick={() => {
                 form.setValue('status', option.value, { shouldValidate: true });
               }}
