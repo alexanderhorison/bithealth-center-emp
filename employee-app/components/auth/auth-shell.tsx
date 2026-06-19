@@ -159,7 +159,7 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
                   </div>
                 </div>
                 <div className="pt-4">
-                    <Button className="w-full" onClick={() => setShowIntro(false)}>
+                    <Button className="w-full bg-brand-500 text-white hover:bg-brand-600" onClick={() => setShowIntro(false)}>
                       Next
                     </Button>
                 </div>
@@ -167,7 +167,9 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
             ) : (
               <div className={cn('w-full space-y-4 text-center', isMobile ? 'max-w-full px-4' : 'max-w-md')}>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-text-tertiary">{appLabel}</p>
+                  <div className="flex justify-center mb-3">
+                    <Logo variant="dark" className="h-7" />
+                  </div>
                   <h1 className="mt-2 text-2xl font-bold tracking-tight text-text-primary">{title}</h1>
                   <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
                 </div>
