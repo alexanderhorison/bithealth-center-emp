@@ -8,6 +8,7 @@ import { ClipboardList, LayoutDashboard, Menu, PanelLeftClose, PanelLeftOpen, Sh
 
 import { UserMenu } from '@/components/auth/user-menu';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/layout/logo';
 import { cn } from '@/lib/utils';
 
 type AdminShellProps = {
@@ -99,7 +100,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900">
+    <div className="min-h-screen bg-gray-50 text-text-primary">
       {!isDesktop && mobileSidebarOpen ? (
         <button
           type="button"
@@ -112,14 +113,14 @@ export function AdminShell({ user, children }: AdminShellProps) {
       <div className="flex min-h-screen">
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-40 h-screen border-r border-stone-300 bg-[#f1ece2] shadow-sm transition-transform duration-200 md:shadow-none',
+            'fixed inset-y-0 left-0 z-40 h-screen border-r border-border-subtle bg-white shadow-sm transition-transform duration-200 md:shadow-none',
             mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
             sidebarCollapsed ? 'w-72 md:w-20' : 'w-72 md:w-64'
           )}
         >
           <div className="flex h-full flex-col">
-            <div className={cn('flex h-16 items-center', sidebarCollapsed ? 'px-3 justify-center' : 'px-5')}>
-              <p className="text-base font-semibold text-stone-900">Bithealth Center</p>
+            <div className={cn('flex h-16 items-center border-b border-border-subtle', sidebarCollapsed ? 'px-3 justify-center' : 'px-5')}>
+              <Logo showText={!sidebarCollapsed} className={cn(sidebarCollapsed ? "h-7 w-7" : "h-6")} />
             </div>
 
             <nav className={cn('space-y-1 py-4', sidebarCollapsed ? 'px-2' : 'px-3')}>
@@ -133,10 +134,10 @@ export function AdminShell({ user, children }: AdminShellProps) {
                     href={item.href}
                     prefetch={false}
                     className={cn(
-                      'flex h-10 items-center rounded-lg border border-transparent text-sm font-medium text-stone-700 transition',
+                      'flex h-10 items-center rounded-lg border border-transparent text-sm font-medium text-text-secondary transition',
                       isActive
-                        ? 'border-stone-300 bg-stone-50 text-stone-900'
-                        : 'hover:border-stone-200 hover:bg-stone-50',
+                        ? 'border-brand-500 bg-brand-50 text-brand-700 font-semibold'
+                        : 'hover:border-brand-200 hover:bg-brand-25 hover:text-brand-600',
                       sidebarCollapsed ? 'justify-center px-0' : 'gap-2 px-3'
                     )}
                     aria-label={item.label}
@@ -149,7 +150,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
               })}
             </nav>
 
-            <div className={cn('mt-auto pb-4 text-xs text-stone-600', sidebarCollapsed ? 'px-3 text-center' : 'px-5')}>
+            <div className={cn('mt-auto pb-4 text-xs text-text-tertiary', sidebarCollapsed ? 'px-3 text-center' : 'px-5')}>
               v1.0
             </div>
           </div>
@@ -161,11 +162,11 @@ export function AdminShell({ user, children }: AdminShellProps) {
             isDesktop ? (sidebarCollapsed ? 'md:ml-20' : 'md:ml-64') : 'ml-0'
           )}
         >
-          <header className="sticky top-0 z-20 border-b border-stone-300 bg-stone-100/95 backdrop-blur">
+          <header className="sticky top-0 z-20 border-b border-border-subtle bg-white/95 backdrop-blur">
             <div className="flex items-center justify-between px-4 py-3 md:px-6">
               <Button
                 variant="outline"
-                className="h-10 w-10 rounded-full bg-stone-50 px-0"
+                className="h-10 w-10 rounded-full bg-white px-0 hover:bg-brand-25 hover:text-brand-700 hover:border-brand-200 border-border-subtle"
                 onClick={onToggleSidebar}
                 aria-label={isDesktop ? 'Toggle sidebar collapse' : 'Toggle sidebar menu'}
               >
