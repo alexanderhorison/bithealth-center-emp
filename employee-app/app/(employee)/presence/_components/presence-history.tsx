@@ -16,8 +16,8 @@ const presenceStatusMeta: Record<
 > = {
   PRESENT: {
     label: 'Present',
-    badgeClass: 'bg-emerald-100 text-emerald-800',
-    accentClass: 'bg-emerald-400'
+    badgeClass: 'bg-brand-50 text-brand-700 border border-brand-200',
+    accentClass: 'bg-brand-500'
   },
   WFH: {
     label: 'WFH',
