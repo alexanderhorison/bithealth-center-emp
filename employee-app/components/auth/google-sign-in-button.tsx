@@ -50,7 +50,7 @@ export function GoogleSignInButton({ redirectPath }: GoogleSignInButtonProps) {
     <div className="space-y-2">
       <Button
         type="button"
-        className="h-12 w-full rounded-full bg-stone-800 text-base font-semibold text-stone-50 hover:bg-stone-700"
+        className="h-12 w-full rounded-full bg-brand-500 text-base font-semibold text-white hover:bg-brand-600 transition-colors shadow-sm"
         onClick={onSignIn}
         disabled={isPending}
         aria-label="Continue with Google"

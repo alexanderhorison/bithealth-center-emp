@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/layout/logo';
 import { cn } from '@/lib/utils';
 
 type AuthShellProps = {
@@ -78,7 +79,7 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
         >
           <section className="hidden border-r border-navy-700 bg-navy-600 p-8 lg:flex lg:flex-col lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-navy-200">{appLabel}</p>
+              <Logo variant="light" className="h-7" />
               <h1 className="mt-3 text-3xl font-bold leading-tight text-white">{intro.heading}</h1>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-navy-100">{intro.description}</p>
             </div>
@@ -122,7 +123,7 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
             {isMobile && showIntro ? (
               <div className="flex h-full w-full max-w-md flex-col text-center">
                 <div className="flex flex-1 flex-col rounded-2xl border border-navy-700 bg-navy-600 px-4 py-5 text-left shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-navy-200">{appLabel}</p>
+                  <Logo variant="light" className="h-6" />
                   <h2 className="mt-3 text-2xl font-bold leading-tight text-white">{intro.heading}</h2>
                   <p className="mt-3 text-sm leading-relaxed text-navy-100">{intro.description}</p>
 
