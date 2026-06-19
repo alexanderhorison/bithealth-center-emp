@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Bithealth Center is your company's command center for daily operations.",
     start_url: '/',
     display: 'standalone',
-    background_color: '#f4f1ea',
-    theme_color: '#f4f1ea',
+    background_color: '#f5f5f4',
+    theme_color: '#f5f5f4',
     icons: [
       {
         src: '/icon-192.png',
