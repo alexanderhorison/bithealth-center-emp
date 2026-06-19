@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Check, LayoutDashboard, Monitor } from 'lucide-react';
 
+import { toast } from 'sonner';
+
 import { saveRoleAction } from '@/app/(admin)/roles/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -72,10 +74,12 @@ export function RoleForm({ mode, initialValues }: RoleFormProps) {
   const mutation = useMutation({
     mutationFn: (payload: SaveRoleInput) => saveRoleAction(payload),
     onSuccess: (result) => {
-      alert(result.message);
       if (result.success) {
+        toast.success(result.message);
         router.push('/roles');
         router.refresh();
+      } else {
+        toast.error(result.message);
       }
     }
   });

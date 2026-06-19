@@ -6,6 +6,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 
+import { toast } from 'sonner';
+
 import { saveEmployeeAction } from '@/app/(admin)/employees/actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,10 +45,12 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
   const mutation = useMutation({
     mutationFn: (input: SaveEmployeeInput) => saveEmployeeAction(input),
     onSuccess: (result) => {
-      alert(result.message);
       if (result.success) {
+        toast.success(result.message);
         router.push('/employees');
         router.refresh();
+      } else {
+        toast.error(result.message);
       }
     }
   });
