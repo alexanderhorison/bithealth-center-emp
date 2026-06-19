@@ -119,8 +119,8 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
                     aria-label="Employee active status"
                     onClick={() => field.onChange(!isActive)}
                     className={cn(
-                      'relative h-6 w-10 rounded-full border border-stone-300 transition-colors focus-visible:outline-none',
-                      isActive ? 'bg-stone-800' : 'bg-stone-300'
+                      'relative h-6 w-10 rounded-full border border-border transition-colors focus-visible:outline-none',
+                      isActive ? 'bg-brand-500 border-brand-600' : 'bg-gray-200'
                     )}
                   >
                     <span
@@ -166,14 +166,14 @@ export function EmployeeForm({ mode, initialValues, roles }: EmployeeFormProps) 
                         className={cn(
                           'flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-all min-w-[200px]',
                           isSelected
-                            ? 'border-stone-800 bg-stone-50 ring-1 ring-stone-800'
-                            : 'border-border hover:border-stone-400 hover:bg-stone-50/50'
+                            ? 'border-brand-500 bg-brand-50 text-brand-700 font-medium'
+                            : 'border-border bg-background hover:border-brand-200 hover:bg-brand-25'
                         )}
                       >
                         <div
                           className={cn(
                             'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                            isSelected ? 'border-stone-800 bg-stone-800' : 'border-stone-300'
+                            isSelected ? 'border-brand-500 bg-brand-500' : 'border-gray-300'
                           )}
                         >
                           {isSelected && (

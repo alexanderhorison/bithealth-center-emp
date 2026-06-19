@@ -27,8 +27,8 @@ export function DeletePresenceButton({ presenceId }: DeletePresenceButtonProps) 
   return (
     <>
       <Button
-        variant="destructive"
-        className="h-8 px-3"
+        variant="outline"
+        className="h-8 border-border-error px-3 text-text-error hover:bg-error-25"
         onClick={() => setConfirmOpen(true)}
         disabled={mutation.isPending}
         aria-label="Delete presence record"

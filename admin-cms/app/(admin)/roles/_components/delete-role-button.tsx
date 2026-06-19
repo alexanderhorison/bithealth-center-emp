@@ -31,7 +31,7 @@ export function DeleteRoleButton({ roleId, roleName, disabled = false }: DeleteR
       <Button
         type="button"
         variant="outline"
-        className="h-8 border-red-300 px-3 text-red-700 hover:bg-red-50"
+        className="h-8 border-border-error px-3 text-text-error hover:bg-error-25"
         onClick={() => setConfirmOpen(true)}
         disabled={disabled || mutation.isPending}
         aria-label="Delete role"
