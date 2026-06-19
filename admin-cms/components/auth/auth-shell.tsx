@@ -4,17 +4,17 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/layout/logo';
 import { cn } from '@/lib/utils';
 
 type AuthShellProps = {
-  appLabel: string;
   title: string;
   subtitle: string;
   defaultShowIntro?: boolean;
   children: ReactNode;
 };
 
-export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, children }: AuthShellProps) {
+export function AuthShell({ title, subtitle, defaultShowIntro = true, children }: AuthShellProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [showIntro, setShowIntro] = useState(defaultShowIntro);
 
@@ -76,40 +76,40 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
             isMobile ? 'h-full overflow-hidden' : 'lg:min-h-[620px] lg:grid-cols-[minmax(360px,1fr)_minmax(420px,1fr)]'
           )}
         >
-          <section className="hidden border-r border-stone-300 bg-[#f1ece2] p-8 lg:flex lg:flex-col lg:justify-between">
+          <section className="hidden border-r border-navy-700 bg-navy-600 p-8 lg:flex lg:flex-col lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">{appLabel}</p>
-              <h1 className="mt-3 text-3xl font-bold leading-tight text-stone-900">{intro.heading}</h1>
-              <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-600">{intro.description}</p>
+              <Logo variant="light" className="h-7" />
+              <h1 className="mt-4 text-3xl font-bold leading-tight text-white">{intro.heading}</h1>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-navy-100">{intro.description}</p>
             </div>
 
             <div className="flex flex-1 items-center justify-center">
               <svg
                 viewBox="0 0 220 130"
-                className="mx-auto h-32 w-56 text-stone-400"
+                className="mx-auto h-32 w-56 text-navy-300"
                 aria-hidden="true"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
               >
-                <rect x="18" y="14" width="184" height="102" rx="16" className="stroke-[1.5] text-stone-300" />
-                <rect x="72" y="8" width="76" height="16" rx="8" className="stroke-[1.5] text-stone-400" />
+                <rect x="18" y="14" width="184" height="102" rx="16" className="stroke-[1.5] text-navy-400" />
+                <rect x="72" y="8" width="76" height="16" rx="8" className="stroke-[1.5] text-navy-300" />
                 <circle cx="56" cy="52" r="11" />
-                <path d="M42 76c4-7 10-10 14-10s10 3 14 10" className="text-stone-500" />
+                <path d="M42 76c4-7 10-10 14-10s10 3 14 10" className="text-navy-200" />
                 <rect x="90" y="40" width="76" height="10" rx="5" />
-                <rect x="90" y="58" width="62" height="10" rx="5" className="text-stone-500" />
-                <rect x="90" y="76" width="48" height="10" rx="5" className="text-stone-500" />
+                <rect x="90" y="58" width="62" height="10" rx="5" className="text-navy-200" />
+                <rect x="90" y="76" width="48" height="10" rx="5" className="text-navy-200" />
                 <circle cx="170" cy="84" r="12" />
-                <path d="M163 84l5 5 9-10" className="text-stone-500" />
-                <rect x="40" y="90" width="28" height="16" rx="4" className="text-stone-500" />
+                <path d="M163 84l5 5 9-10" className="text-navy-200" />
+                <rect x="40" y="90" width="28" height="16" rx="4" className="text-navy-200" />
                 <circle cx="54" cy="98" r="3" />
               </svg>
             </div>
 
-            <div className="rounded-xl border border-stone-300 bg-stone-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Daily Focus</p>
-              <p className="mt-2 text-sm text-stone-700">Review submissions quickly, keep records clean, and support every team.</p>
+            <div className="rounded-xl border border-navy-500 bg-navy-700 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-200">Daily Focus</p>
+              <p className="mt-2 text-sm text-navy-100">Review submissions quickly, keep records clean, and support every team.</p>
             </div>
           </section>
 
@@ -121,10 +121,10 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
           >
             {isMobile && showIntro ? (
               <div className="flex h-full w-full max-w-md flex-col text-center">
-                <div className="flex flex-1 flex-col rounded-2xl border border-stone-200 bg-[#f1ece2] px-4 py-5 text-left shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">{appLabel}</p>
-                  <h2 className="mt-3 text-2xl font-bold leading-tight text-stone-900">{intro.heading}</h2>
-                  <p className="mt-3 text-sm leading-relaxed text-stone-600">{intro.description}</p>
+                <div className="flex flex-1 flex-col rounded-2xl border border-navy-700 bg-navy-600 px-4 py-5 text-left shadow-sm">
+                  <Logo variant="light" className="h-6" />
+                  <h2 className="mt-3 text-2xl font-bold leading-tight text-white">{intro.heading}</h2>
+                  <p className="mt-3 text-sm leading-relaxed text-navy-100">{intro.description}</p>
 
                   <div className="mt-5 flex items-center justify-center">
                     <svg
@@ -151,9 +151,9 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
                   </div>
 
                   <div className="mt-auto pt-4">
-                    <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">Daily Focus</p>
-                      <p className="mt-1 text-sm text-stone-700">Review submissions quickly, keep records clean, and support every team.</p>
+                    <div className="rounded-xl border border-navy-500 bg-navy-700 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-200">Daily Focus</p>
+                      <p className="mt-1 text-sm text-navy-100">Review submissions quickly, keep records clean, and support every team.</p>
                     </div>
                   </div>
                 </div>
@@ -166,9 +166,11 @@ export function AuthShell({ appLabel, title, subtitle, defaultShowIntro = true, 
             ) : (
               <div className={cn('w-full space-y-4 text-center', isMobile ? 'max-w-full px-4' : 'max-w-md')}>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">{appLabel}</p>
-                  <h1 className="mt-2 text-2xl font-bold tracking-tight text-stone-900">{title}</h1>
-                  <p className="mt-1 text-sm text-stone-600">{subtitle}</p>
+                  <div className="flex justify-center mb-3">
+                    <Logo variant="dark" className="h-7" />
+                  </div>
+                  <h1 className="mt-2 text-2xl font-bold tracking-tight text-text-primary">{title}</h1>
+                  <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
                 </div>
 
                 {children}

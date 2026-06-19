@@ -38,7 +38,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <AuthShell
-      appLabel="Bithealth Center CMS"
       title="Sign in to CMS"
       subtitle="Manage employees and presence records from one admin workspace."
       defaultShowIntro={errorMessage === null}
