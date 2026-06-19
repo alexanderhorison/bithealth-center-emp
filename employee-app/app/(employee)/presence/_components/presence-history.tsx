@@ -101,10 +101,10 @@ export function PresenceHistory({ initialEntries }: PresenceHistoryProps) {
                   return (
                     <div
                       key={`${presence.presence_date}-${presence.updated_at}`}
-                      className="flex overflow-hidden rounded-xl border border-stone-200 bg-white"
+                      className="flex overflow-hidden rounded-md border border-stone-200"
                     >
                       {/* Left accent bar */}
-                      <div className={cn('w-1 shrink-0', meta.accentClass)} />
+                      <div className={cn('w-0.5 shrink-0', meta.accentClass)} />
 
                       {/* Content */}
                       <div className="flex-1 px-4 py-3">
@@ -115,7 +115,7 @@ export function PresenceHistory({ initialEntries }: PresenceHistoryProps) {
                           </span>
                           <span
                             className={cn(
-                              'inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
+                              'inline-flex shrink-0 rounded-sm px-2 py-0.5 text-xs font-medium',
                               meta.badgeClass
                             )}
                           >
@@ -153,7 +153,7 @@ export function PresenceHistory({ initialEntries }: PresenceHistoryProps) {
                 ) : null}
               </>
             ) : (
-              <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center">
+              <div className="rounded-md border border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center">
                 <UserRound className="mx-auto mb-2 h-5 w-5 text-stone-400" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">No history yet.</p>
               </div>
