@@ -64,7 +64,7 @@ export function AccessRequestFilter({ query, provider, status }: AccessRequestFi
         aria-label="Search requests"
       />
       <select
-        className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         value={providerValue}
         onChange={(event) => setProviderValue(event.target.value)}
         aria-label="Filter by provider"
@@ -74,7 +74,7 @@ export function AccessRequestFilter({ query, provider, status }: AccessRequestFi
         <option value="FIGMA">Figma</option>
       </select>
       <select
-        className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         value={statusValue}
         onChange={(event) => setStatusValue(event.target.value)}
         aria-label="Filter by status"
