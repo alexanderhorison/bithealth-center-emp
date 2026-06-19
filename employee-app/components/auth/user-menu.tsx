@@ -49,7 +49,7 @@ export function UserMenu({ fullName, email }: UserMenuProps) {
     <div className="relative">
       <button
         type="button"
-        className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-stone-300 bg-stone-50 text-sm font-semibold text-stone-700"
+        className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-navy-200 bg-navy-600 text-sm font-semibold text-white"
         onClick={() => setIsOpen((current) => !current)}
         aria-label="Open user menu"
       >
@@ -64,10 +64,10 @@ export function UserMenu({ fullName, email }: UserMenuProps) {
             onClick={() => setIsOpen(false)}
             aria-label="Close user menu"
           />
-          <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-stone-300 bg-stone-50 p-3 shadow-lg">
-            <div className="mb-3 border-b border-stone-200 pb-3">
-              <p className="text-sm font-semibold text-stone-900">{fullName ?? email}</p>
-              <p className="text-xs text-stone-600">{email}</p>
+          <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-border-subtle bg-white p-3 shadow-md">
+            <div className="mb-3 border-b border-border-subtle pb-3">
+              <p className="text-sm font-semibold text-text-primary">{fullName ?? email}</p>
+              <p className="text-xs text-text-secondary">{email}</p>
             </div>
             <Button
               type="button"

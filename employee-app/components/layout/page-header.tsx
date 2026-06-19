@@ -26,7 +26,7 @@ export function PageHeader({
         <Link
           href="/modules"
           prefetch={false}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-zinc-700 transition hover:bg-zinc-300 hover:text-zinc-900"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition hover:bg-brand-100 hover:text-brand-700"
           aria-label="Open modules"
         >
           <Grid3X3 className="h-5 w-5" aria-hidden="true" />
