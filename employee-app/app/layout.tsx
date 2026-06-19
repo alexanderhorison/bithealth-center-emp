@@ -1,20 +1,21 @@
 import type { Metadata, Viewport } from 'next';
-import { Manrope, Noto_Sans_JP } from 'next/font/google';
+import { IBM_Plex_Mono, Inter } from 'next/font/google';
 
 import { Providers } from '@/app/providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-service-worker';
 import '@/app/globals.css';
 
-const notoSansJp = Noto_Sans_JP({
-  variable: '--font-noto-sans-jp',
+const inter = Inter({
+  variable: '--font-sans',
   subsets: ['latin'],
-  weight: ['400', '500', '700']
+  display: 'swap'
 });
 
-const manrope = Manrope({
-  variable: '--font-manrope',
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: '--font-mono',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800']
+  weight: ['400', '500', '600'],
+  display: 'swap'
 });
 
 export const metadata: Metadata = {
@@ -37,13 +38,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#f4f1ea'
+  themeColor: '#F34B1F'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${notoSansJp.variable} ${manrope.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <RegisterServiceWorker />
       </body>
